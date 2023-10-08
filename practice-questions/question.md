@@ -1,6 +1,173 @@
 # Practice Questions
 
-## Question 1
+## Setup
+
+### alias
+
+Create a few aliases that will be used in every question
+
+```sh
+# Edit
+~/.bashrc
+
+# Add the following
+alias cc=clear
+alias ll=ls -ltr
+
+alias k=kubectl
+alias ns='kubectl config set-context --current --namespace'
+```
+
+optional
+
+```bash
+vim ~/myps1.sh
+
+#!/bin/bash
+myps1() {
+
+  cluster="$(kubectl config current-context)"
+  # The following assume a singel context exists
+  ns=$(kubectl config view | yq e '.contexts[0].context.namespace' -)
+
+  echo "($cluster:$ns)  \w$ "
+
+}
+
+# make executable
+chmod +x myps1.sh
+. ~/myps1.sh
+
+export PS1="$(myps1)"
+```
+
+### vim
+
+Toggling line numbers can be useful when finding syntax errors based on line but can be bad when wanting to mark&copy with mouse.
+
+- `:set number` - show line numbers
+- `:set nonumber` - don't show line numbers
+- `:22` - jump to a line number
+
+>The following settings will already be configured in your real exam environment in ~/.vimrc. But it can never hurt to be able to type these down
+vim ~/.vimrc
+Now enter (in insert-mode activated with i) the following lines:
+
+```sh
+vim ~/.vimrc
+
+# Insert the following lines:
+set expandtab
+set tabstop=2
+set shiftwidth=2
+```
+
+- expandtab - use spaces for tab
+- tabstop - amount of spaces used for tab
+- shiftwidth - amount of spaces used during indentation
+
+## Questions
+
+### Question 1
+
+Create a namespace called `mynamespace` and a pod with image `nginx` called `mynginx` on this namespace
+
+Answer: :white_check_mark:
+
+```bash
+k create ns mynamespace
+k run mynginx --image=nginx -n mynamespace
+```
+
+### Question 2
+
+Create a manifest file called `pod.yaml` for a pod with image `nginx` called `nginx` in the namespace `mynamespace` then create the pod in the cluster.
+
+Answer: :white_check_mark:
+
+```bash
+# Generate manifest
+k run mynginx --image=nginx --dry-run=client -n mynamespace -oyaml > pod.yaml
+
+# Apply
+k apply -f pod.yaml
+```
+
+### Question 3
+
+Run an imperative command that will create a pod using the `busybox` image and runs the command `env` so that the output is saved in a file call `myout.txt`. After the commands runs the pod should automatically be removed.
+
+Answer: :white_check_mark:
+
+```sh
+# Review the examples
+k run -h | grep Examples: -A 28
+
+# Run
+k run -it --rm busybox --image=busybox --restart=Never --command -- env > myout.txt
+
+# Verify
+$ cat myout.txt
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+TERM=xterm
+HOSTNAME=busybox
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_PORT=443
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+HOME=/root
+pod "busybox" deleted
+
+# The --rm flag should automatically remove the pod
+$ k get pods
+No resources found in default namespace.
+```
+
+### Question 4
+
+Create a pod from a manifest file called `pod.yaml`. The pod should use the `busybox` image and run the command `env`.  Fetch the command output and save it to a file called `myout.txt`
+
+Answer: :white_check_mark:
+
+```sh
+# Review usage
+k run -h
+
+# Generate manifest
+k run mypod --image=busybox --dry-run=client --restart=Never -oyaml  --command -- env > pod.yaml
+
+# Apply
+k apply -f pod.yaml
+
+# Verify
+$ k get po
+NAME    READY   STATUS      RESTARTS   AGE
+mypod   0/1     Completed   0          16s
+
+# Get logs save to file
+k logs po/mypod > myout.txt
+
+# Verify
+$ cat myout.txt 
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=mypod
+KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+KUBERNETES_SERVICE_HOST=10.96.0.1
+KUBERNETES_SERVICE_PORT=443
+KUBERNETES_SERVICE_PORT_HTTPS=443
+KUBERNETES_PORT=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+KUBERNETES_PORT_443_TCP_PROTO=tcp
+KUBERNETES_PORT_443_TCP_PORT=443
+HOME=/root
+
+```
+
+### Question
 
 Create a namespace called `ggckad-s0` in your cluster.
 Run the following pods in this namespace.
@@ -10,17 +177,16 @@ Run the following pods in this namespace.
 
 Write down the output of `kubectl get pods` for the `ggckad-s0` namespace.
 
-### Answer 1
+Answer :white_check_mark:
 
 DEVTODO - Redo this answer
 
 There answer which I might want to update:
 
 ```bash
-# Setup
-alias k=kubectl
-alias ns="kubectl config set-context --current --namespace"
+# Create namespace
 k create namespace ggckad-s0
+ns ggckad-s0
 
 # Generate pod manifests
 kubectl run nginx --image=kubegoldenguide/simple-http-server --dry-run=client -o yaml > simple-http-server.yaml
@@ -72,7 +238,7 @@ k logs pod-b alpine-spin-container --namespace ggckad-s0
 k logs pod-b nginx-container --namespace ggckad-s0
 ```
 
-## Question 2
+### Question
 
 All operations in this question should be performed in the `ggckad-s2` namespace.
 
@@ -86,13 +252,12 @@ Run a pod called `question-two-pod` with a single container running the `kubegol
 All operations in this question should be performed in the `ggckad-s2` namespace.
 Create a ConfigMap called `app-config` that contains the following two entries:
 
-### Answer 2
+Answer :white_check_mark:
 
 ```bash
-# Setup
-alias k=kubectl
-alias ns="kubectl config set-context --current --namespace"
+# Create namespace
 k create ns ggckad-s2
+ns ggckad-s2
 
 # Use help to review command Usage example
 k create cm --help
@@ -171,17 +336,14 @@ localhost:4096
 / #
 ```
 
-## Question 3
+### Question
 
 All operations in this question should be performed in the `ggckad-s2` namespace. Create a pod that has two containers. Both containers should run the `kubegoldenguide/alpine-spin:1.0.0` image. The first container should run as `user ID 1000`, and the second container with `user ID 2000`. Both containers should use file system `group ID 3000`.
 
-### Answer 3
+Answer: :white_check_mark:
 
 ```bash
-# Setup
-alias k=kubectl
-alias ns="kubectl config set-context --current --namespace"
-
+# Create namespace
 k create ns ggckad-s2
 ns ggckad-s2
 
@@ -244,7 +406,7 @@ $ k exec -it pod/mypod -c=c2 -- /bin/sh
 uid=2000 gid=3000
 ```
 
-## Question 4
+### Question
 
 All operations in this question should be performed in the `ggckad-s4` namespace. This question will require you to create a pod that runs the image `kubegoldenguide/question-thirteen`. This image is in the main Docker repository at [`hub.docker.com`](http://hub.docker.com/).
 
@@ -252,15 +414,12 @@ This image is a web server that has a health endpoint served at `/health`. The w
 
 Create a pod called `question-13-pod` to run this application, making sure to define `liveness` and `readiness` probes that use this health endpoint.
 
-### Answer 4
+Answer: :white_check_mark:
 
 ```bash
-# setups
-alias k=kubectl
-alias ns=kubectl config set-context --current --namespace
-alias ns="kubectl config set-context --current --namespace"
-
+# Create namespace
 k create ns ggckad-s4
+ns ggckad-g4
 
 # Generate pod manifests
 k run --help
@@ -310,20 +469,18 @@ NAME   READY   STATUS    RESTARTS   AGE
 pod4   1/1     Running   0          107s 
 ```
 
-## Question 5
+### Question
 
 All operations in this question should be performed in the `ggckad-s5` namespace. Create a file called `question-5.yaml` that declares a deployment in the `ggckad-s5` namespace, with `six replicas` running the `nginx:1.7.9` image.
 
 Each pod should have the label `app=revproxy`. The deployment should have the label `client=user`. Configure the deployment so that when the deployment is updated, **the existing pods are killed off before new pods are created** to replace them.
 
-### Answer 5
+Answer: :white_check_mark:
 
 ```sh
-# Setup
-alias k=kubectl
-alias ns="kubectl config set-context --current --namespace"
-
+# Create namespace
 k create ns ggckad-s5
+ns ggckad-s5
 
 #
 # Research
@@ -392,39 +549,12 @@ k apply -f question-5.yaml
 k get all
 ```
 
-## Question x
+### Question
 
-This is quesion x
+This is question x
 
-### Answer x
+Answer: :white_check_mark:
 
-```sh
-# Setup
-```
-## Question x
+this the answer
 
-This is quesion x
 
-### Answer x
-
-```sh
-# Setup
-```
-## Question x
-
-This is quesion x
-
-### Answer x
-
-```sh
-# Setup
-```
-## Question x
-
-This is quesion x
-
-### Answer x
-
-```sh
-# Setup
-```
