@@ -12,10 +12,13 @@ Create a few aliases that will be used in every question
 
 # Add the following
 alias cc=clear
-alias ll=ls -ltr
+alias ll='ls -ltr'
 
 alias k=kubectl
 alias ns='kubectl config set-context --current --namespace'
+
+. .~/bashrc
+
 ```
 
 optional
@@ -72,7 +75,7 @@ set shiftwidth=2
 
 Create a namespace called `mynamespace` and a pod with image `nginx` called `mynginx` on this namespace
 
-Answer: :white_check_mark:
+Answer:
 
 ```bash
 k create ns mynamespace
@@ -83,7 +86,7 @@ k run mynginx --image=nginx -n mynamespace
 
 Create a manifest file called `pod.yaml` for a pod with image `nginx` called `nginx` in the namespace `mynamespace` then create the pod in the cluster.
 
-Answer: :white_check_mark:
+Answer:
 
 ```bash
 # Generate manifest
@@ -97,7 +100,7 @@ k apply -f pod.yaml
 
 Run an imperative command that will create a pod using the `busybox` image and runs the command `env` so that the output is saved in a file call `myout.txt`. After the commands runs the pod should automatically be removed.
 
-Answer: :white_check_mark:
+Answer:
 
 ```sh
 # Review the examples
@@ -131,7 +134,7 @@ No resources found in default namespace.
 
 Create a pod from a manifest file called `pod.yaml`. The pod should use the `busybox` image and run the command `env`.  Fetch the command output and save it to a file called `myout.txt`
 
-Answer: :white_check_mark:
+Answer:
 
 ```sh
 # Review usage
@@ -167,7 +170,214 @@ HOME=/root
 
 ```
 
-### Question
+### Question 5
+
+Create the yaml for a new namespace called `myns` without creating it
+
+```sh
+k create ns myns --dry-run=client -oyaml 
+```
+
+### Question 6
+
+Create the YAML for a new `ResourceQuota` called `myrq` with hard limits of 1 CPU, 1G memory and 2 pods without creating it.
+
+Answer: 
+
+```sh
+# Review examples
+k create quota myquota --dry-run=client -oyaml -h | grep Examples:  -A5
+
+# Generate manifests
+k create quota myquota --dry-run=client --hard=cpu=1,memory=1G,pods=2 -oyaml > myquota.yaml
+
+# Verify
+$ cat myquota.yaml 
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  creationTimestamp: null
+  name: myquota
+spec:
+  hard:
+    cpu: "1"
+    memory: 1G
+    pods: "2"
+status: {}
+```
+
+### Question 7
+
+Get pods on all namespaces
+
+Answer:
+
+```sh
+k get po -A
+```
+
+### Question 8.1
+
+Create a pod with image `nginx` called `mynginx` and expose traffic on port `80`
+
+Answer:
+
+```sh
+# Review usage
+k run -h
+
+# Generate manifest
+k run mynginx --image=nginx --port=80 --dry-run=client -oyaml > mynginx.yaml
+
+# Review
+$ cat mynginx.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mynginx
+  name: mynginx
+spec:
+  containers:
+  - image: nginx
+    name: mynginx
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# Apply
+k apply -f mynginx.yaml
+```
+
+### Question 8.2
+
+Change the `mynginx` pod's image to `nginx:1.7.1`. Observe that the container will be restarted as soon as the image gets pulled.
+
+Answer:
+
+```sh
+# Edit pod in the cluster
+k edit po/mynginx 
+
+# Or edit pod manifest and apply
+vim mynginx.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mynginx
+  name: mynginx
+spec:
+  containers:
+  - image: nginx:1.7.1 # edit this line
+    name: mynginx
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# Apply
+k apply -f mynginx.yaml 
+
+# Or use set
+k set image po/mynginx mynginx=nginx:1.7.1
+
+# In this case it took longe to formate the set command
+# and get the name of the container than just editing in place
+# There are some case where set might be faster see the examples
+k set image -h | grep Examples: -A 12
+
+# Watch the pod
+k get po/mynginx -w
+```
+
+### Question 8.3
+
+Get `mynginx` pod's IP address and use a temp `busybox` image to wget its `/` endpoint.
+
+Answer:
+
+```sh
+# Display the pod IP
+k get po -owide
+
+# Launch a utility pod
+k run mybusybox --image=busybox --rm -it --command -- /bin/sh
+/ # wget http://192.168.1.3/
+Connecting to 192.168.1.3 (192.168.1.3:80)
+saving to 'index.html'
+index.html           100% |*********************************************|   612  0:00:00 ETA
+'index.html' saved
+```
+
+### Question 8.4
+
+Get the `mynginx` pod's manifest from the cluster and save it in a file called `mypod.yaml`
+
+Answer:
+
+```sh
+k get po/mynginx -oyaml > mypod.yaml
+```
+
+### Question 8.5
+
+Get information about the `mynginx` pod, including details about potential issues (e.g. pod hasn't started)
+
+Answer:
+
+```sh
+k describe po/mynginx
+```
+
+### Question 8.6
+
+Get current logs for the `mynginx` pod. Sho how if the pod crashed and restarted you could get logs about the previous instance.
+
+Answer:
+
+```sh
+k logs po/mynginx 
+k logs po/mynginx -p
+```
+
+### Question 8.7
+
+Open an interactive shell in the `mynginx` pod.
+
+Answer:
+
+```sh
+# Review usage
+k exec -h
+
+# Open interactive shell 
+k exec -it pod/mynginx -- /bin/sh
+```
+
+### Question 9
+
+Create a pod with image `busybox` that echoes 'hello world' and then exits
+
+Answer:
+
+```sh
+# Review the examples
+k run -h | grep Examples: -A 27
+
+# DEVTODO left off here
+k run mybox --image=busybox --restart=Never --command=true -- /bin/sh -c 'echo hello world'
+```
+
+
+### Question TBD
 
 Create a namespace called `ggckad-s0` in your cluster.
 Run the following pods in this namespace.
@@ -177,7 +387,7 @@ Run the following pods in this namespace.
 
 Write down the output of `kubectl get pods` for the `ggckad-s0` namespace.
 
-Answer :white_check_mark:
+Answer
 
 DEVTODO - Redo this answer
 
@@ -252,7 +462,7 @@ Run a pod called `question-two-pod` with a single container running the `kubegol
 All operations in this question should be performed in the `ggckad-s2` namespace.
 Create a ConfigMap called `app-config` that contains the following two entries:
 
-Answer :white_check_mark:
+Answer
 
 ```bash
 # Create namespace
@@ -340,7 +550,7 @@ localhost:4096
 
 All operations in this question should be performed in the `ggckad-s2` namespace. Create a pod that has two containers. Both containers should run the `kubegoldenguide/alpine-spin:1.0.0` image. The first container should run as `user ID 1000`, and the second container with `user ID 2000`. Both containers should use file system `group ID 3000`.
 
-Answer: :white_check_mark:
+Answer:
 
 ```bash
 # Create namespace
@@ -414,7 +624,7 @@ This image is a web server that has a health endpoint served at `/health`. The w
 
 Create a pod called `question-13-pod` to run this application, making sure to define `liveness` and `readiness` probes that use this health endpoint.
 
-Answer: :white_check_mark:
+Answer:
 
 ```bash
 # Create namespace
@@ -475,7 +685,7 @@ All operations in this question should be performed in the `ggckad-s5` namespace
 
 Each pod should have the label `app=revproxy`. The deployment should have the label `client=user`. Configure the deployment so that when the deployment is updated, **the existing pods are killed off before new pods are created** to replace them.
 
-Answer: :white_check_mark:
+Answer:
 
 ```sh
 # Create namespace
@@ -553,7 +763,7 @@ k get all
 
 This is question x
 
-Answer: :white_check_mark:
+Answer:
 
 this the answer
 
