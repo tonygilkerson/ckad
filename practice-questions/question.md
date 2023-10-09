@@ -21,6 +21,18 @@ alias ns='kubectl config set-context --current --namespace'
 
 ```
 
+### tmux
+
+```sh
+tmux new -s aeg
+
+# Split
+control-b then "
+# Switch between the two
+control-b then o
+```
+
+
 optional
 
 ```bash
