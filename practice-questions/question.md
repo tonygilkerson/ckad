@@ -18,21 +18,11 @@ alias k=kubectl
 alias ns='kubectl config set-context --current --namespace'
 alias ctx='kubectl config use-context'
 
+DEVTODO add an alias to display the current context and namespace
+
 . .~/bashrc
 
 ```
-
-### tmux
-
-```sh
-tmux new -s aeg
-
-# Split
-control-b then "
-# Switch between the two
-control-b then o
-```
-
 
 optional
 
@@ -65,7 +55,8 @@ Toggling line numbers can be useful when finding syntax errors based on line but
 - `:set nonumber` - don't show line numbers
 - `:22` - jump to a line number
 
->The following settings will already be configured in your real exam environment in ~/.vimrc. But it can never hurt to be able to type these down
+  >The above settings will already be configured in your real exam environment in ~/.vimrc. But it can never hurt to be able to type these down
+
 vim ~/.vimrc
 Now enter (in insert-mode activated with i) the following lines:
 
@@ -84,9 +75,7 @@ set shiftwidth=2
 
 ## Questions
 
-### Question 1
-
-Create a namespace called `mynamespace` and a pod with image `nginx` called `mynginx` on this namespace
+### Create a namespace called `mynamespace` and a pod with image `nginx` called `mynginx` on this namespace
 
 Answer:
 
@@ -95,9 +84,7 @@ k create ns mynamespace
 k run mynginx --image=nginx -n mynamespace
 ```
 
-### Question 2
-
-Create a manifest file called `pod.yaml` for a pod with image `nginx` called `nginx` in the namespace `mynamespace` then create the pod in the cluster.
+### Create a manifest file called `pod.yaml` for a pod with image `nginx` called `nginx` in the namespace `mynamespace` then create the pod in the cluster.
 
 Answer:
 
@@ -109,9 +96,7 @@ k run mynginx --image=nginx --dry-run=client -n mynamespace -oyaml > pod.yaml
 k apply -f pod.yaml
 ```
 
-### Question 3
-
-Run an imperative command that will create a pod using the `busybox` image and runs the command `env` so that the output is saved in a file call `myout.txt`. After the commands runs the pod should automatically be removed.
+### Run an imperative command that will create a pod using the `busybox` image and runs the command `env` so that the output is saved in a file call `myout.txt`. After the commands runs the pod should automatically be removed.
 
 Answer:
 
@@ -143,9 +128,7 @@ $ k get pods
 No resources found in default namespace.
 ```
 
-### Question 4
-
-Create a pod from a manifest file called `pod.yaml`. The pod should use the `busybox` image and run the command `env`.  Fetch the command output and save it to a file called `myout.txt`
+### Create a pod from a manifest file called `pod.yaml`. The pod should use the `busybox` image and run the command `env`.  Fetch the command output and save it to a file called `myout.txt`
 
 Answer:
 
@@ -183,17 +166,13 @@ HOME=/root
 
 ```
 
-### Question 5
-
-Create the yaml for a new namespace called `myns` without creating it
+### Create the yaml for a new namespace called `myns` without creating it
 
 ```sh
 k create ns myns --dry-run=client -oyaml 
 ```
 
-### Question 6
-
-Create the YAML for a new `ResourceQuota` called `myrq` with hard limits of 1 CPU, 1G memory and 2 pods without creating it.
+### Create the YAML for a new `ResourceQuota` called `myrq` with hard limits of 1 CPU, 1G memory and 2 pods without creating it.
 
 Answer:
 
@@ -219,9 +198,7 @@ spec:
 status: {}
 ```
 
-### Question 7
-
-Get pods on all namespaces
+### Get pods on all namespaces
 
 Answer:
 
@@ -229,9 +206,7 @@ Answer:
 k get po -A
 ```
 
-### Question 8.1
-
-Create a pod with image `nginx` called `mynginx` and expose traffic on port `80`
+### Create a pod with image `nginx` called `mynginx` and expose traffic on port `80`
 
 Answer:
 
@@ -266,9 +241,7 @@ status: {}
 k apply -f mynginx.yaml
 ```
 
-### Question 8.2
-
-Change the `mynginx` pod's image to `nginx:1.7.1`. Observe that the container will be restarted as soon as the image gets pulled.
+### Change the `mynginx` pod's image to `nginx:1.7.1`. Observe that the container will be restarted as soon as the image gets pulled.
 
 Answer:
 
@@ -313,7 +286,7 @@ k get po/mynginx -w
 
 ### Question 8.3
 
-Get `mynginx` pod's IP address and use a temp `busybox` image to wget its `/` endpoint.
+### Get `mynginx` pod's IP address and use a temp `busybox` image to wget its `/` endpoint.
 
 Answer:
 
