@@ -16,6 +16,7 @@ alias ll='ls -ltr'
 
 alias k=kubectl
 alias ns='kubectl config set-context --current --namespace'
+alias ctx='kubectl config use-context'
 
 . .~/bashrc
 
@@ -194,7 +195,7 @@ k create ns myns --dry-run=client -oyaml
 
 Create the YAML for a new `ResourceQuota` called `myrq` with hard limits of 1 CPU, 1G memory and 2 pods without creating it.
 
-Answer: 
+Answer:
 
 ```sh
 # Review examples
@@ -384,10 +385,179 @@ Answer:
 # Review the examples
 k run -h | grep Examples: -A 27
 
-# DEVTODO left off here
-k run mybox --image=busybox --restart=Never --command=true -- /bin/sh -c 'echo hello world'
+# Generate manifests and apply
+k run mybox --image=busybox --dry-run=client -oyaml --command=true --restart=Never -- /bin/sh -c 'echo hello world' > mybox.yaml
+k apply -f mybox.yaml
+
+# Get logs
+$ k logs po/mybox 
+hello world
+
+# Verify, should be 0/1 ready and status Completed
+$ k get po
+NAME    READY   STATUS      RESTARTS   AGE
+mybox   0/1     Completed   0          3m15s
 ```
 
+### Question 10
+
+Create a pod with image `busybox` that echoes 'hello world' to the interactive terminal and then exits, but this time have the pod deleted automatically
+
+Answer:
+
+```sh
+# Review help, I remember something about "--rm" so start there
+$ k run -h | grep "\-\-rm" -A 2
+    --rm=false:
+        If true, delete the pod after it exits.  Only valid when attaching to the container, e.g. with '--attach' or with '-i/--stdin'.
+
+
+# Run
+k run mybox --image=busybox -it --rm --restart=Never --command=true -- /bin/sh -c 'echo hello world'
+k get po # nowhere to be found :)
+```
+
+## Question 11
+
+Create an nginx pod and set an env value as 'var1=val1'. Check the env value existence within the pod
+
+Answer:
+
+```sh
+# Review usage
+k run -h
+
+# Generate manifest
+k run mypod --image=nginx --env="var1=val1" --dry-run=client -oyaml > mypod.yaml
+
+# Verify
+cat mypod.yaml 
+
+# Apply
+k apply -f mypod.yaml 
+
+# Shell into pod and echo env var
+$ k exec -it mypod -- /bin/bash 
+root@mypod:/# echo $var1
+val1
+```
+
+### Question 12
+
+Create a Pod with two containers, both with image `busybox` and command `echo hello; sleep 3600`. Connect to the second container and run 'ls'
+
+Answer:
+
+```sh
+# Review usage
+k run -h
+
+# Generate manifests
+k run my2cpod --image=busybox --dry-run=client --command=true -oyaml -- /bin/sh -c "echo hello; sleep 3600" > my2cpod.yaml
+
+# Create second container by copying the first
+vim my2cpod.yaml 
+
+$ cat my2cpod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: my2cpod
+  name: my2cpod
+spec:
+  containers:
+  - command:
+    - /bin/sh
+    - -c
+    - echo hello; sleep 3600
+    image: busybox
+    name: c1
+    resources: {}
+  - command:         # copied and renamed
+    - /bin/sh
+    - -c
+    - echo hello; sleep 3600
+    image: busybox
+    name: c2 
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# Apply
+k apply -f my2cpod.yaml 
+
+# Shell into second container
+k exec -it my2cpod -c=c2 -- /bin/sh
+/ # ls
+bin    dev    etc    home   lib    lib64  proc   root   sys    tmp    usr    var
+/ # 
+```
+
+### Question 12
+
+Create a pod with an `nginx` container exposed on port `80`. Add a `busybox` init container which downloads a page using `wget -O /work-dir/index.html http://neverssl.com/online`. Make a volume of type `emptyDir` and mount it in both containers. For the `nginx` container, mount it on `/usr/share/nginx/html` and for the init container, mount it on `/work-dir`. When done, get the IP of the created pod and create a `busybox` pod and run `wget -O- <IP>`
+
+Answer:
+
+```sh
+k run mywww --image=nginx --port=80 --dry-run=client -oyaml > mywww.yaml
+
+# Search kubernetes.io/docs
+# keywords: emptyDir and volumeMounts:
+# Use help to edit file
+vim mywww.yaml 
+$ cat mywww.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: mywww
+  name: mywww
+spec:
+  volumes:
+  - name: myvolume
+    emptyDir:
+  initContainers:
+  - name: myinit
+    image: busybox
+    volumeMounts:
+    - mountPath: /work-dir
+      name: myvolume
+    command: ['sh', '-c', "wget -O /work-dir/index.html http://neverssl.com/online"]
+  containers:
+  - image: nginx
+    name: mywww
+    volumeMounts:
+    - mountPath: /usr/share/nginx/html
+      name: myvolume
+    ports:
+    - containerPort: 80
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# Get IP address
+k get pods -owide
+
+$ k get pods -owide
+NAME    READY   STATUS    RESTARTS        AGE     IP            NODE     NOMINATED NODE   READINESS GATES
+mywww   1/1     Running   0               8m1s    192.168.1.5   node01   <none>           <none>
+
+# Create a work pod and sell into it
+k run -it --image=busybox -- sh
+/ # wget -O- 192.168.1.5
+Connecting to 192.168.1.5 (192.168.1.5:80)
+writing to stdout
+...
+```
+
+
+DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/main/c.pod_design.md
 
 ### Question TBD
 
