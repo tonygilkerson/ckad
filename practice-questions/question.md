@@ -17,6 +17,7 @@ alias ll='ls -ltr'
 alias k=kubectl
 alias ns='kubectl config set-context --current --namespace'
 alias ctx='kubectl config use-context'
+alias getctx='kubectl config get-context'
 
 DEVTODO add an alias to display the current context and namespace
 
@@ -77,16 +78,12 @@ set shiftwidth=2
 
 ### Create a namespace called `mynamespace` and a pod with image `nginx` called `mynginx` on this namespace
 
-Answer:
-
 ```bash
 k create ns mynamespace
 k run mynginx --image=nginx -n mynamespace
 ```
 
 ### Create a manifest file called `pod.yaml` for a pod with image `nginx` called `nginx` in the namespace `mynamespace` then create the pod in the cluster.
-
-Answer:
 
 ```bash
 # Generate manifest
@@ -97,8 +94,6 @@ k apply -f pod.yaml
 ```
 
 ### Run an imperative command that will create a pod using the `busybox` image and runs the command `env` so that the output is saved in a file call `myout.txt`. After the commands runs the pod should automatically be removed.
-
-Answer:
 
 ```sh
 # Review the examples
@@ -129,8 +124,6 @@ No resources found in default namespace.
 ```
 
 ### Create a pod from a manifest file called `pod.yaml`. The pod should use the `busybox` image and run the command `env`.  Fetch the command output and save it to a file called `myout.txt`
-
-Answer:
 
 ```sh
 # Review usage
@@ -174,8 +167,6 @@ k create ns myns --dry-run=client -oyaml
 
 ### Create the YAML for a new `ResourceQuota` called `myrq` with hard limits of 1 CPU, 1G memory and 2 pods without creating it.
 
-Answer:
-
 ```sh
 # Review examples
 k create quota myquota --dry-run=client -oyaml -h | grep Examples:  -A5
@@ -200,15 +191,11 @@ status: {}
 
 ### Get pods on all namespaces
 
-Answer:
-
 ```sh
 k get po -A
 ```
 
 ### Create a pod with image `nginx` called `mynginx` and expose traffic on port `80`
-
-Answer:
 
 ```sh
 # Review usage
@@ -242,8 +229,6 @@ k apply -f mynginx.yaml
 ```
 
 ### Change the `mynginx` pod's image to `nginx:1.7.1`. Observe that the container will be restarted as soon as the image gets pulled.
-
-Answer:
 
 ```sh
 # Edit pod in the cluster
@@ -284,11 +269,7 @@ k set image -h | grep Examples: -A 12
 k get po/mynginx -w
 ```
 
-### Question 8.3
-
 ### Get `mynginx` pod's IP address and use a temp `busybox` image to wget its `/` endpoint.
-
-Answer:
 
 ```sh
 # Display the pod IP
@@ -303,42 +284,26 @@ index.html           100% |*********************************************|   612 
 'index.html' saved
 ```
 
-### Question 8.4
-
-Get the `mynginx` pod's manifest from the cluster and save it in a file called `mypod.yaml`
-
-Answer:
+### Get the `mynginx` pod's manifest from the cluster and save it in a file called `mypod.yaml`
 
 ```sh
 k get po/mynginx -oyaml > mypod.yaml
 ```
 
-### Question 8.5
-
-Get information about the `mynginx` pod, including details about potential issues (e.g. pod hasn't started)
-
-Answer:
+### Get information about the `mynginx` pod, including details about potential issues (e.g. pod hasn't started)
 
 ```sh
 k describe po/mynginx
 ```
 
-### Question 8.6
-
-Get current logs for the `mynginx` pod. Sho how if the pod crashed and restarted you could get logs about the previous instance.
-
-Answer:
+### Get current logs for the `mynginx` pod. Sho how if the pod crashed and restarted you could get logs about the previous instance.
 
 ```sh
 k logs po/mynginx 
 k logs po/mynginx -p
 ```
 
-### Question 8.7
-
-Open an interactive shell in the `mynginx` pod.
-
-Answer:
+### Open an interactive shell in the `mynginx` pod.
 
 ```sh
 # Review usage
@@ -348,11 +313,7 @@ k exec -h
 k exec -it pod/mynginx -- /bin/sh
 ```
 
-### Question 9
-
-Create a pod with image `busybox` that echoes 'hello world' and then exits
-
-Answer:
+### Create a pod with image `busybox` that echoes 'hello world' and then exits
 
 ```sh
 # Review the examples
@@ -372,11 +333,7 @@ NAME    READY   STATUS      RESTARTS   AGE
 mybox   0/1     Completed   0          3m15s
 ```
 
-### Question 10
-
-Create a pod with image `busybox` that echoes 'hello world' to the interactive terminal and then exits, but this time have the pod deleted automatically
-
-Answer:
+### Create a pod with image `busybox` that echoes 'hello world' to the interactive terminal and then exits, but this time have the pod deleted automatically
 
 ```sh
 # Review help, I remember something about "--rm" so start there
@@ -390,11 +347,7 @@ k run mybox --image=busybox -it --rm --restart=Never --command=true -- /bin/sh -
 k get po # nowhere to be found :)
 ```
 
-## Question 11
-
-Create an nginx pod and set an env value as 'var1=val1'. Check the env value existence within the pod
-
-Answer:
+### Create an nginx pod and set an env value as 'var1=val1'. Check the env value existence within the pod
 
 ```sh
 # Review usage
@@ -415,11 +368,7 @@ root@mypod:/# echo $var1
 val1
 ```
 
-### Question 12
-
-Create a Pod with two containers, both with image `busybox` and command `echo hello; sleep 3600`. Connect to the second container and run 'ls'
-
-Answer:
+### Create a Pod with two containers, both with image `busybox` and command `echo hello; sleep 3600`. Connect to the second container and run 'ls'
 
 ```sh
 # Review usage
@@ -469,11 +418,7 @@ bin    dev    etc    home   lib    lib64  proc   root   sys    tmp    usr    var
 / # 
 ```
 
-### Question 12
-
-Create a pod with an `nginx` container exposed on port `80`. Add a `busybox` init container which downloads a page using `wget -O /work-dir/index.html http://neverssl.com/online`. Make a volume of type `emptyDir` and mount it in both containers. For the `nginx` container, mount it on `/usr/share/nginx/html` and for the init container, mount it on `/work-dir`. When done, get the IP of the created pod and create a `busybox` pod and run `wget -O- <IP>`
-
-Answer:
+### Create a pod with an `nginx` container exposed on port `80`. Add a `busybox` init container which downloads a page using `wget -O /work-dir/index.html http://neverssl.com/online`. Make a volume of type `emptyDir` and mount it in both containers. For the `nginx` container, mount it on `/usr/share/nginx/html` and for the init container, mount it on `/work-dir`. When done, get the IP of the created pod and create a `busybox` pod and run `wget -O- <IP>`
 
 ```sh
 k run mywww --image=nginx --port=80 --dry-run=client -oyaml > mywww.yaml
@@ -529,12 +474,626 @@ writing to stdout
 ...
 ```
 
+### Create 3 pods with names `nginx1`,`nginx2`,`nginx3`. All of them should have the label `app=v1`
 
-DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/main/c.pod_design.md
+```sh
+# Review usage
+# Look at options for label
+k run -h
 
-### Question TBD
+# Create pods
+$ k run nginx1 --image=nginx -l app=v1
+pod/nginx1 created
+$ k run nginx2 --image=nginx -l app=v1
+pod/nginx2 created
+$ k run nginx3 --image=nginx -l app=v1
+pod/nginx3 created
 
-Create a namespace called `ggckad-s0` in your cluster.
+# Verify
+$ k get pods -l app=v1
+NAME     READY   STATUS    RESTARTS   AGE
+nginx1   1/1     Running   0          21s
+nginx2   1/1     Running   0          17s
+nginx3   1/1     Running   0          12s
+
+```
+
+### Display all pods along with their labels
+
+```sh
+# Search usage for "show" to discover the "--show-labels" flag
+$ k get po -h | grep show
+    --show-kind=false:
+    --show-labels=false:
+        When printing, show all labels as the last column (default hide labels column)
+    --show-managed-fields=false:
+
+# Pods with labels
+$ k get po --show-labels
+NAME     READY   STATUS    RESTARTS   AGE     LABELS
+nginx1   1/1     Running   0          4m14s   app=v1
+nginx2   1/1     Running   0          4m10s   app=v1
+nginx3   1/1     Running   0          4m5s    app=v1
+```
+
+### Change the labels of pod 'nginx2' to be app=v2
+
+```sh
+# Review usage
+k label -h
+
+# Update label 
+k label po/nginx2 app=v2 --overwrite
+
+# Verify
+$ k get po --show-labels
+NAME     READY   STATUS    RESTARTS   AGE     LABELS
+nginx1   1/1     Running   0          7m58s   app=v1
+nginx2   1/1     Running   0          7m54s   app=v2
+nginx3   1/1     Running   0          7m49s   app=v1
+```
+
+### Get the label `app` for the pods (show a column with APP labels)
+
+```sh
+# Search usage for output formats
+# Click link to custom-comlumns
+$ k get pod -h | grep '\-\-output' -A 5
+    -o, --output='':
+        Output format. One of: (json, yaml, name, go-template, go-template-file, template, templatefile, jsonpath, jsonpath-as-json, jsonpath-file, custom-columns, custom-columns-file, wide). See custom columns [https://kubernetes.io/docs/reference/kubectl/#custom-columns], golang template [http://golang.org/pkg/text/template/#pkg-overview] and jsonpath template [https://kubernetes.io/docs/reference/kubectl/jsonpath/].
+
+# Found this example
+# kubectl get pods <pod-name> -o custom-columns=NAME:.metadata.name,RSRC:.metadata.resourceVersion
+
+# Use yq to figure out path
+$ k get po/nginx1 -oyaml | yq e '.metadata.labels.app' -
+v1
+
+# Use example and path to create listing
+$ k get po -o custom-columns=Name:.metadata.name,APP:.metadata.labels.app
+Name     APP
+nginx1   v1
+nginx2   v2
+nginx3   v1
+```
+
+### Get only the `app=v2` pods
+
+```sh
+$ k get po -l app=v2
+NAME     READY   STATUS    RESTARTS   AGE
+nginx2   1/1     Running   0          22m
+```
+
+### Add a new label `tier=web` to all pods having `app=v2` or `app=v1` labels
+
+```sh
+# Review usage
+k label -h
+
+# Search help for Label selectors
+# https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+#
+# Note:
+# -l app=v1 -l tier=web       - True if app=v1 AND tier=web
+# -l app=v1, tier=web         - True if app=v1 OR  tier=web
+# -l app=v1 -l app=v2         - WARNING this is the same as -l app=v2
+
+# Note I have to use set notation because the key "app" is the same
+# https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+$ k label po -l "app in (v1,v2)" tier=web
+pod/nginx1 labeled
+pod/nginx2 labeled
+pod/nginx3 labeled
+
+# Of if I forget set notation just run two commands
+k label po -l app=v1
+k label po -l app=v2
+
+# Verify
+$ k get pod --show-labels
+NAME     READY   STATUS    RESTARTS   AGE   LABELS
+nginx1   1/1     Running   0          46m   app=v1,tier=web
+nginx2   1/1     Running   0          46m   app=v2,tier=web
+nginx3   1/1     Running   0          46m   app=v1,tier=web
+```
+
+### Add an annotation `owner: marketing` to all pods having `app=v2` label
+
+```sh
+# Review usage
+k annotate -h
+
+# Add anno
+kubectl annotate pods -l app=v2 owner=marketing
+
+# Verify
+$ k get po/nginx2 -oyaml | yq e '.metadata.annotations' -
+cni.projectcalico.org/containerID: c32a9569ce94dec306d36ac290795b66299dff315b529d977ab69b43c3d16817
+cni.projectcalico.org/podIP: 192.168.1.4/32
+cni.projectcalico.org/podIPs: 192.168.1.4/32
+owner: marketing
+```
+
+### Remove the `app` label from the pods we created before
+
+```sh
+# Look at the examples
+k label -h | grep "Examples:" -A 19
+
+# Select all pods that have an "app" label and remove it
+$ k label po -l app app-
+pod/nginx1 unlabeled
+pod/nginx2 unlabeled
+pod/nginx3 unlabeled
+```
+
+### Annotate pods `nginx1`, `nginx2`, `nginx3` with `description='my description'` value. Assume the pods have no labels on them
+
+```sh
+# Review usage
+k annotate -h
+
+# Add anno
+k annotate po/nginx{1..3} description='my description'
+pod/nginx1 annotated
+pod/nginx2 annotated
+pod/nginx3 annotated
+
+# Verify
+$ k get po -oyaml | yq e .items[].metadata.annotations.description -
+my description
+my description
+my description
+```
+
+### Check the annotations for pod nginx1
+
+```sh
+# yq
+# For me yq is faster to figure out if it is available
+k get po -oyaml | yq e .items[].metadata.annotations.description -
+
+# jsonpath 
+$ k get po -o=jsonpath='{range .items[*]}{.metadata.annotations.description}{"\n"}' 
+my description
+my description
+my description
+
+# custom-columns
+# This one looks the best
+$ k get po -o custom-columns=Name:metadata.name,DESC:metadata.annotations.description
+Name     DESC
+nginx1   my description
+nginx2   my description
+nginx3   my description
+```
+
+### Remove the `description` annotations for the `nginx`, `nginx2` and `nginx3` pods
+
+```sh
+# Check your pod selection first
+$ k get po/nginx{1..3}
+NAME     READY   STATUS    RESTARTS   AGE
+nginx1   1/1     Running   0          25m
+nginx2   1/1     Running   0          25m
+nginx3   1/1     Running   0          25m
+
+$ k annotate po/nginx{1..3} description-
+pod/nginx1 annotated
+pod/nginx2 annotated
+pod/nginx3 annotated
+
+# Verify
+$ k get po/nginx{1..3} -oyaml | yq e .items[].metadata.annotations.description -
+null
+null
+null
+
+```
+
+### Remove the `nginx`, `nginx2` and `nginx3` pods to have a clean state in your cluster
+
+```sh
+# Delete
+$ k delete po nginx{1..3}
+pod "nginx1" deleted
+pod "nginx2" deleted
+pod "nginx3" deleted
+```
+
+### Create a pod that will be deployed to a Node that has the label `accelerator=nvidia-tesla-p100`
+
+```sh
+# List the nodes and label a worker node
+$ k get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   41d   v1.28.1
+node01         Ready    <none>          41d   v1.28.1
+
+k label node/node01 accelerator=nvidia-tesla-p100
+
+# Verify node has label
+$ k get node -l accelerator=nvidia-tesla-p100
+NAME     STATUS   ROLES    AGE   VERSION
+node01   Ready    <none>   41d   v1.28.1
+
+# Search help for node to find nodeName
+k explain pod.spec --recursive | grep -i node
+k explain pod.spec.nodeName
+
+# Generate yaml
+k run myacc --image=nginx --dry-run=client -oyaml > myacc.yamlk run myacc --image=nginx --dry-run=client --oyaml > myacc.yaml
+
+# Add nodeName
+vim myacc.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: myacc
+  name: myacc
+spec:
+  nodeName: node01 # Add this
+  containers:
+  - image: nginx
+    name: myacc
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# Apply
+k apply -f myacc.yaml 
+
+# Verify
+$ k get po -owide   
+NAME    READY   STATUS    RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+myacc   1/1     Running   0          24s   192.168.1.7   node01   <none>           <none>
+```
+
+### Taint a node with key `tier` and value `frontend` with the effect `NoSchedule`. Then, create a pod that tolerates this taint
+
+```sh
+# Review usage
+k taint -h
+
+# Add taint
+$ kubectl taint node node01 tier=frontend:NoSchedule
+node/node01 tainted
+
+k explain pod.spec --recursive | grep -i toler
+k explain pod.spec.tolerations
+
+# Search help for toleration to get a good example
+# https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+
+tolerations:
+- key: "key1"
+  operator: "Equal"
+  value: "value1"
+  effect: "NoSchedule"
+
+# Edit manifest to add toleration
+vim myacc.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: myacc
+  name: myacc
+spec:
+  tolerations:         # Add toleration
+  - key: "tier"
+    operator: "Equal"
+    value: "frontend"
+    effect: "NoSchedule"
+  nodeName: node01 
+  containers:
+  - image: nginx
+    name: myacc
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+## Create a pod that will be placed on node `controlplane`. Use `nodeSelector` and `tolerations`
+
+```sh
+# Find the controlplane node
+$ k get nodes
+NAME           STATUS   ROLES           AGE   VERSION
+controlplane   Ready    control-plane   41d   v1.28.1
+node01         Ready    <none>          41d   v1.28.1
+
+# Find the taint and labels that identify the controlplane
+$ k get node controlplane -oyaml | yq e
+...
+  taints:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+...
+  labels:
+    kubernetes.io/hostname: controlplane
+...
+
+# Search usage for nodeSelector
+# Note the nodeSelector is a label selector
+#   nodeSelector:
+#     nodeLabelKey: value
+k explain pod --recursive | grep -i nodeSelector
+k explain pod.spec.nodeSelector
+
+
+# Search help for toleration to find this example 
+...
+  tolerations:
+  - key: "key1"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+# Edit pod manifest to add nodeSelector
+vim myctlt.yaml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: myctlt
+  name: myctlt
+spec:
+  tolerations:                                   # Add this
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  nodeSelector:                                  # Add this
+    kubernetes.io/hostname: controlplane
+  containers:
+  - image: nginx
+    name: myctlt
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+# Verify
+$ k get po -owide
+NAME     READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES
+myctlt   1/1     Running   0          40s   192.168.0.8   controlplane   <none>           <none>
+```
+
+### Create a deployment with image `nginx:1.18.0`, called `nginx`, having `2 replicas`, defining `port 80` as the port that this container exposes (don't create a service for this deployment)
+
+```sh
+# Review usage and examples
+k create deploy -h
+
+# Create manifest
+k create deployment nginx --image=nginx:1.18.0 --dry-run=client --port=80 --replicas=2 -oyaml
+
+# Apply
+k apply -f mydep.yaml 
+
+# Verify
+$ k get all
+NAME                         READY   STATUS    RESTARTS   AGE
+pod/nginx-584b4f6d78-24mkm   1/1     Running   0          2s
+pod/nginx-584b4f6d78-q7629   1/1     Running   0          2s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   41d
+
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx   2/2     2            2           2s
+
+NAME                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/nginx-584b4f6d78   2         2         2       2s
+```
+
+### View the YAML of this deployment
+
+```sh
+ k get deploy/nginx -oyaml | yq e
+```
+
+### View the YAML of the replica set that was created by this deployment
+
+```sh
+k get rs -l app=nginx  -oyaml | yq e
+```
+
+### Get the YAML for one of the pods
+
+```sh
+# List the pods
+$ k get po -l app=nginx  
+NAME                     READY   STATUS    RESTARTS   AGE
+nginx-584b4f6d78-24mkm   1/1     Running   0          8m58s
+nginx-584b4f6d78-q7629   1/1     Running   0          8m58s
+
+# Pick one and display it yaml
+k get po/nginx-584b4f6d78-24mkm -oyaml | yq e
+```
+
+### Check how the deployment rollout is going
+
+```sh
+# Review usage
+k rollout -h
+k rollout status -h
+
+# Display rollout status
+$ k rollout status deploy/nginx 
+deployment "nginx" successfully rolled out
+```
+
+### Update the nginx image to` nginx:1.19.8`
+
+```sh
+# Edit the manifest
+k edit deploy nginx # change the .spec.template.spec.containers[0].image
+
+# alternatively...
+# Review usage
+k set -h
+k set image -h
+
+# Set image
+k set image deployment/nginx nginx=nginx:1.19.0
+```
+
+### Check the rollout history and confirm that the replicas are OK
+
+```sh
+$ k rollout history deploy/nginx 
+deployment.apps/nginx 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+$ k rollout status deploy/nginx 
+deployment "nginx" successfully rolled out
+
+$ k rollout history deploy/nginx 
+deployment.apps/nginx 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+$ k rollout status deploy/nginx 
+deployment "nginx" successfully rolled out
+```
+
+### Undo the latest rollout and verify that new pods have the old image (`nginx:1.18.0`)
+
+```sh
+# Review usage and examples
+k rollout -h
+k rollout undo deploy/nginx 
+
+#Verify
+$ k get deploy/nginx -oyaml | yq e '.spec.template.spec.containers[0].image' -
+nginx:1.18.0
+```
+
+### Do an on purpose update of the deployment with a wrong image `nginx:1.91`
+
+```sh
+# Edit manifest
+k edit deployment/nginx
+
+# Or set image
+k set image deployment/nginx nginx=nginx:1.92
+```
+
+### Verify that something's wrong with the rollout
+
+```sh
+$ k rollout status deploy/nginx
+Waiting for deployment "nginx" rollout to finish: 1 out of 2 new replicas have been updated...
+
+$ k get rs  -l app=nginx
+NAME               DESIRED   CURRENT   READY   AGE
+nginx-584b4f6d78   2         2         2       27m
+nginx-675b746db7   0         0         0       22m
+nginx-bd8859678    1         1         0       5m45s
+
+$ k get pod -l app=nginx
+NAME                     READY   STATUS             RESTARTS   AGE
+nginx-584b4f6d78-r8wnj   1/1     Running            0          11m
+nginx-584b4f6d78-vs6dq   1/1     Running            0          11m
+nginx-bd8859678-4w7f5    0/1     ImagePullBackOff   0          6m3s
+```
+
+### Return the deployment to the second revision (number 2) and verify the image is `nginx:1.19.8`
+
+```sh
+# Review examples
+$ k rollout undo -h | grep Example -A 9 
+Examples:
+  # Roll back to the previous deployment
+  kubectl rollout undo deployment/abc
+  
+  # Roll back to daemonset revision 3
+  kubectl rollout undo daemonset/abc --to-revision=3
+  
+  # Roll back to the previous deployment with dry-run
+  kubectl rollout undo --dry-run=server deployment/abc
+
+# Rollback
+k rollout undo deployment/nginx --to-revision=2
+
+# Verify
+$ k get deploy/nginx -oyaml | yq e '.spec.template.spec.containers[0].image' -
+nginx:1.19.0
+```
+
+### Check the details of the fourth revision (number 4)
+
+```sh
+# Review usage
+$ k rollout history -h
+
+# Show details of rev 4
+$ k rollout history deploy/nginx --revision=4
+deployment.apps/nginx with revision #4
+Pod Template:
+  Labels:       app=nginx
+        pod-template-hash=bd8859678
+  Containers:
+   nginx:
+    Image:      nginx:1.92
+    Port:       80/TCP
+    Host Port:  0/TCP
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+```
+
+### Scale the deployment to 5 replicas
+
+```sh
+# Review usage
+k scale -h
+
+# Scale up
+k scale --replicas=5 deploy/nginx
+```
+
+### Autoscale the deployment, pods between 5 and 10, targetting CPU utilization at 80%
+
+```sh
+# Review usage and examples
+k autoscale -h
+
+# Create hpa manifest
+k autoscale deployment/nginx --min=5 --max=10 --cpu-percent=80 --dry-run=client -oyaml > myhpa.yaml
+
+# Verify
+k get pods
+```
+
+DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L402
+
+
+DEVTODO - left off here
+
+
+
+
+
+
+
+
+
+### Create a namespace called `ggckad-s0` in your cluster.
+
 Run the following pods in this namespace.
 
 1. A pod called `pod-a` with a single container running the `kubegoldenguide/simple-http-server` image
