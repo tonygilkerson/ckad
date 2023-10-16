@@ -1079,7 +1079,258 @@ k autoscale deployment/nginx --min=5 --max=10 --cpu-percent=80 --dry-run=client 
 k get pods
 ```
 
-DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L402
+### Pause the rollout of the deployment
+
+```sh
+# Review usage and examples
+k rollout -h
+
+# Pause
+k rollout pause deployment/nginx
+```
+
+### Update the image to `nginx:1.19.9` and check that there's nothing going on, since we paused the rollout
+
+```sh
+# Review usage
+k set -h
+
+# Change the image
+k set image deployment/nginx nginx=nginx:1.19.9
+
+# See that the rollout is not finished
+$ k rollout status deployment/nginx -w=false
+Waiting for deployment "nginx" rollout to finish: 0 out of 5 new replicas have been updated...
+
+# Confirm "DeploymentPaused"
+$ k describe deploy/nginx | grep Conditions -A 4
+Conditions:
+  Type           Status   Reason
+  ----           ------   ------
+  Progressing    Unknown  DeploymentPaused
+  Available      True     MinimumReplicasAvailable
+```
+
+### Resume the rollout and check that the `nginx:1.19.9` image has been applied
+
+```sh
+# Review usage 
+k rollout resume -h
+
+# Resume
+k rollout resume deploy/nginx
+
+# Check status
+$ k rollout status deploy/nginx
+deployment "nginx" successfully rolled out
+
+# Verify
+$ k get po -l app=nginx -oyaml | yq e  '.items[0].spec.containers[0].image' -
+nginx:1.19.9
+```
+
+### Delete the deployment and the horizontal pod autoscaler you created
+
+```sh
+# First list befor you delete
+$ k get deployment,hpa
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/nginx   10/10   10           10          33m
+
+NAME                                        REFERENCE          TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/nginx   Deployment/nginx   <unknown>/50%   10        15        10         2m56s
+
+# Delete
+$ k delete deployment/nginx 
+deployment.apps "nginx" deleted
+
+$ k delete hpa/nginx        
+horizontalpodautoscaler.autoscaling "nginx" deleted
+
+```
+
+### Implement canary deployment by running two instances of `nginx` marked as `version=v1` and `version=v2` so that the load is balanced at 75%-25% ratio
+
+```sh
+# Read help: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#canary-deployment
+
+# Review usage and examples
+k create deployment -h
+
+# Generate manifests
+k create deployment nxa --image=nginx:1.18.0 -r=9 --port=80 --dry-run=client -oyaml > nxa.yaml
+k create deployment nxb --image=nginx:1.19.0 -r=3 --port=80 --dry-run=client -oyaml > nxb.yaml
+
+# Edit manifests to make a common app label "app: nx"
+# Could use vim to edit instead
+sed -i 's/app: nxa/app: nx/g' nxa.yaml 
+sed -i 's/app: nxb/app: nx/g' nxb.yaml 
+
+# Apply
+k apply -f nxa.yaml
+k apply -f nxb.yaml
+
+# Check to see that all pods are under the common label
+k get pods -l app=nx
+
+# Review usage and examples
+k create service -h
+k create service clusterip -h
+
+# Generate manifest
+k create service clusterip nx --tcp=80:80 --dry-run=client -oyaml > nxsvc.yaml
+
+# Apply
+$ k apply -f nxsvc.yaml 
+
+# Verify the service SELECTOR is "app=nx"
+$ k get svc/nx -owide
+NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE     SELECTOR
+nx     ClusterIP   10.97.25.25   <none>        80/TCP    4m26s   app=nx
+```
+
+### Implement canary deployment by running two instances of `nginx` marked as `version=v1` and `version=v2` so that the load is balanced at 75%-25% ratio, but this time make is so the deployment respond with `version-1` and `version-2` respectivly
+
+```sh
+# Review usage and examples
+k create deployment -h
+
+# Generate manifests
+k create deployment nxa --image=nginx:1.18.0 -r=9 --port=80 --dry-run=client -oyaml > nxa.yaml
+
+# Find index.html path
+$ k exec -it po/nxa-5dbb8f8f9c-24967 -- sh
+% find . | grep index.html
+./usr/share/nginx/html/index.html
+
+
+# Search kubernetes.io/docs
+#   - find emptDir volume example
+#   - find init container example
+#
+# Edit deployment to add emptyDir volume at /usr/share/nginx/html/index.html
+# add init contaoner to populate index.html
+
+vim nxa.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nx
+  name: nxa
+spec:
+  replicas: 9
+  selector:
+    matchLabels:
+      app: nx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nx
+    spec:
+      initContainers:
+      - name: init
+        volumeMounts:
+         - mountPath: /usr/share/nginx/html
+           name: data
+        image: busybox:1.28
+        command:
+        - /bin/sh
+        - -c
+        - echo version-1 >  /usr/share/nginx/html/index.html
+      volumes:
+      - name: data
+        emptyDir: {}
+      containers:
+      - image: nginx:1.18.0
+        name: nginx
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: data
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}
+
+
+cp nxa.yaml nxb.yaml
+
+vim nxb.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nx
+  name: nxb
+spec:
+  replicas: 3 
+  selector:
+    matchLabels:
+      app: nx
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nx
+    spec:
+      initContainers:
+      - name: init
+        volumeMounts:
+         - mountPath: /usr/share/nginx/html
+           name: data
+        image: busybox:1.28
+        command: 
+        - /bin/sh
+        - -c
+        - echo version-2 >  /usr/share/nginx/html/index.html 
+      volumes:
+      - name: data
+        emptyDir: {}
+      containers:
+      - image: nginx:1.19.0
+        name: nginx
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: data
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}
+
+k apply -f nxa.yaml 
+k apply -f nxb.yaml
+
+# Verify that index.html has been update, pick any pod
+$ k exec -it po/nx-5fcf545b8d-5lzbc -c nginx -- cat /usr/share/nginx/html/index.html
+version-2
+
+# Make sure all 12 pods are listed under the common label
+k get po -l app=nx
+
+# Review usage and examples
+k create service -h
+k create service clusterip -h
+
+# Generate manifest
+k create service clusterip nx --tcp=80:80 --dry-run=client -oyaml > nxsvc.yaml
+
+# Apply
+k apply -f nxsvc.yaml 
+
+DEVTODO this is close but does not work
+k run  test -it --image=busybox --command -- /bin/sh -c 'while true; curl http://nx; sleep 3; done'
+
+```
+
+
+DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L590C1-L590C148
 
 
 DEVTODO - left off here
