@@ -1158,17 +1158,18 @@ horizontalpodautoscaler.autoscaling "nginx" deleted
 k create deployment -h
 
 # Generate manifests
-k create deployment nxa --image=nginx:1.18.0 -r=9 --port=80 --dry-run=client -oyaml > nxa.yaml
-k create deployment nxb --image=nginx:1.19.0 -r=3 --port=80 --dry-run=client -oyaml > nxb.yaml
+k create deployment mycan --image=nginx:1.19.0 -r=3 --port=80 --dry-run=client -oyaml > mycan-deploy2.yaml
+k create deployment mycan --image=nginx:1.18.0 -r=9 --port=80 --dry-run=client -oyaml > mycan-deploy1.yaml
 
-# Edit manifests to make a common app label "app: nx"
+# Edit manifests to make the deployment names unique
 # Could use vim to edit instead
-sed -i 's/app: nxa/app: nx/g' nxa.yaml 
-sed -i 's/app: nxb/app: nx/g' nxb.yaml 
+sed -i 's/name: mycan/name: mycan1/g' mycan-deploy1.yaml
+sed -i 's/name: mycan/name: mycan2/g' mycan-deploy2.yaml
+
 
 # Apply
-k apply -f nxa.yaml
-k apply -f nxb.yaml
+k apply -f mycan-deploy1.yaml
+k apply -f mycan-deploy2.yaml
 
 # Check to see that all pods are under the common label
 k get pods -l app=nx
@@ -1178,15 +1179,34 @@ k create service -h
 k create service clusterip -h
 
 # Generate manifest
-k create service clusterip nx --tcp=80:80 --dry-run=client -oyaml > nxsvc.yaml
+k create service clusterip mycan --tcp=80:80 --dry-run=client -oyaml > mycan-svc.yaml
 
 # Apply
-$ k apply -f nxsvc.yaml 
+k apply -f mycan-svc.yaml 
 
-# Verify the service SELECTOR is "app=nx"
-$ k get svc/nx -owide
-NAME   TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE     SELECTOR
-nx     ClusterIP   10.97.25.25   <none>        80/TCP    4m26s   app=nx
+# Verify the service SELECTOR is "app=mycan"
+$ k get svc/mycan -owide
+NAME    TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+mycan   ClusterIP   10.111.77.10   <none>        80/TCP    38s   app=mycan
+
+# Then verify that all pods show up under this selector
+# This means that the service is loadbalancing to pods in a round robin fassion
+# at a ration of 3:1
+#
+$ k get po -l app=mycan
+NAME                      READY   STATUS    RESTARTS   AGE
+mycan1-764f57dfcd-65msn   1/1     Running   0          3m39s
+mycan1-764f57dfcd-6txwl   1/1     Running   0          3m39s
+mycan1-764f57dfcd-7z8dr   1/1     Running   0          3m39s
+mycan1-764f57dfcd-8fbr9   1/1     Running   0          3m39s
+mycan1-764f57dfcd-fv644   1/1     Running   0          3m39s
+mycan1-764f57dfcd-h8hjb   1/1     Running   0          3m39s
+mycan1-764f57dfcd-n6c9g   1/1     Running   0          3m39s
+mycan1-764f57dfcd-pwb69   1/1     Running   0          3m39s
+mycan1-764f57dfcd-wsdks   1/1     Running   0          3m39s
+mycan2-855f78f44c-flnd4   1/1     Running   0          3m39s
+mycan2-855f78f44c-h2sz7   1/1     Running   0          3m39s
+mycan2-855f78f44c-nqxbf   1/1     Running   0          3m39s
 ```
 
 ### Implement canary deployment by running two instances of `nginx` marked as `version=v1` and `version=v2` so that the load is balanced at 75%-25% ratio, but this time make is so the deployment respond with `version-1` and `version-2` respectivly
@@ -1209,7 +1229,7 @@ $ k exec -it po/nxa-5dbb8f8f9c-24967 -- sh
 #   - find init container example
 #
 # Edit deployment to add emptyDir volume at /usr/share/nginx/html/index.html
-# add init contaoner to populate index.html
+# add init container to populate index.html
 
 vim nxa.yaml
 
@@ -1232,7 +1252,7 @@ spec:
       labels:
         app: nx
     spec:
-      initContainers:
+      initContainers: # add initContainer
       - name: init
         volumeMounts:
          - mountPath: /usr/share/nginx/html
@@ -1242,7 +1262,7 @@ spec:
         - /bin/sh
         - -c
         - echo version-1 >  /usr/share/nginx/html/index.html
-      volumes:
+      volumes:       # add emptyDir vol
       - name: data
         emptyDir: {}
       containers:
@@ -1267,9 +1287,9 @@ metadata:
   creationTimestamp: null
   labels:
     app: nx
-  name: nxb
+  name: nxb  # Change deployment name
 spec:
-  replicas: 3 
+  replicas: 3 # Change replicas
   selector:
     matchLabels:
       app: nx
@@ -1294,7 +1314,7 @@ spec:
       - name: data
         emptyDir: {}
       containers:
-      - image: nginx:1.19.0
+      - image: nginx:1.19.0 # chane image
         name: nginx
         volumeMounts:
         - mountPath: /usr/share/nginx/html
@@ -1308,11 +1328,16 @@ k apply -f nxa.yaml
 k apply -f nxb.yaml
 
 # Verify that index.html has been update, pick any pod
-$ k exec -it po/nx-5fcf545b8d-5lzbc -c nginx -- cat /usr/share/nginx/html/index.html
-version-2
+$ k exec pods/nxa-78f585dbcd-7vmc7 -it -c nginx -- cat /usr/share/nginx/html/index.html
+version-1
 
 # Make sure all 12 pods are listed under the common label
 k get po -l app=nx
+
+$ k get po -l app=nx | grep nxa | wc -l
+9
+$ k get po -l app=nx | grep nxb | wc -l
+3
 
 # Review usage and examples
 k create service -h
@@ -1324,11 +1349,26 @@ k create service clusterip nx --tcp=80:80 --dry-run=client -oyaml > nxsvc.yaml
 # Apply
 k apply -f nxsvc.yaml 
 
-DEVTODO this is close but does not work
-k run  test -it --image=busybox --command -- /bin/sh -c 'while true; curl http://nx; sleep 3; done'
-
+# Hit the service
+k run  test -it --rm --image=busybox --command -- /bin/sh -c 'while true;do wget -O - -q  http://nx; sleep 1; done'
 ```
 
+### Create a job named `pi` with image `perl:5.34` that runs the command with arguments `perl -Mbignum=bpi -wle 'print bpi(2000)'`
+
+```sh
+# Review usage and examples
+k create job -h
+
+# Generate manifests
+k create job mypi --image=perl:5.34 --dry-run=client -oyaml -- perl -Mbignum=bpi -wle 'print bpi(2000)'  > mypi.yaml
+
+# Apply
+k apply -f mypi.yaml
+
+# Verify
+$ k logs po/mypi-x4vnc
+3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989380952572010654858632788659361533818279682303019520353018529689957736225994138912497217752834791315155748572424541506959508295331168617278558890750983817546374649393192550604009277016711390098488240128583616035637076601047101819429555961989467678374494482553797747268471040475346462080466842590694912933136770289891521047521620569660240580381501935112533824300355876402474964732639141992726042699227967823547816360093417216412199245863150302861829745557067498385054945885869269956909272107975093029553211653449872027559602364806654991198818347977535663698074265425278625518184175746728909777727938000816470600161452491921732172147723501414419735685481613611573525521334757418494684385233239073941433345477624168625189835694855620992192221842725502542568876717904946016534668049886272327917860857843838279679766814541009538837863609506800642251252051173929848960841284886269456042419652850222106611863067442786220391949450471237137869609563643719172874677646575739624138908658326459958133904780275901
+```
 
 DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L590C1-L590C148
 
