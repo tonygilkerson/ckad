@@ -1370,10 +1370,206 @@ $ k logs po/mypi-x4vnc
 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936072602491412737245870066063155881748815209209628292540917153643678925903600113305305488204665213841469519415116094330572703657595919530921861173819326117931051185480744623799627495673518857527248912279381830119491298336733624406566430860213949463952247371907021798609437027705392171762931767523846748184676694051320005681271452635608277857713427577896091736371787214684409012249534301465495853710507922796892589235420199561121290219608640344181598136297747713099605187072113499999983729780499510597317328160963185950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989380952572010654858632788659361533818279682303019520353018529689957736225994138912497217752834791315155748572424541506959508295331168617278558890750983817546374649393192550604009277016711390098488240128583616035637076601047101819429555961989467678374494482553797747268471040475346462080466842590694912933136770289891521047521620569660240580381501935112533824300355876402474964732639141992726042699227967823547816360093417216412199245863150302861829745557067498385054945885869269956909272107975093029553211653449872027559602364806654991198818347977535663698074265425278625518184175746728909777727938000816470600161452491921732172147723501414419735685481613611573525521334757418494684385233239073941433345477624168625189835694855620992192221842725502542568876717904946016534668049886272327917860857843838279679766814541009538837863609506800642251252051173929848960841284886269456042419652850222106611863067442786220391949450471237137869609563643719172874677646575739624138908658326459958133904780275901
 ```
 
-DEVTODO left off here https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L590C1-L590C148
+### Create a job with the image `busybox` that executes the command `echo hello;sleep 30;echo world`
 
+```sh
+# Review usage and examples
+k create job -h
+
+# Create job
+k create job myjob --image=busybox -- /bin/sh -c "echo hello;sleep 30;echo world"
+
+# Verify
+$ k get job
+NAME    COMPLETIONS   DURATION   AGE
+myjob   1/1           35s        2m12s
+```
+
+### Create a job with the image `busybox` that executes the command `echo hello;sleep 30;echo world` and follow the logs untill the job complets
+
+```sh
+# Review usage and examples
+k create job -h
+
+# Create job
+k create job myjob --image=busybox -- /bin/sh -c "echo hello;sleep 30;echo world"
+
+$ k logs -l job-name=myjob -f
+hello
+world
+```
+
+### See the status of the job, describe it and see the logs
+
+```sh
+kubectl get jobs
+kubectl describe jobs myjob
+kubectl logs job/myjob
+```
+
+### Create a job with the image `busybox` that executes the command `echo hello;sleep 30;echo world` ensure that it will be automatically terminated by K8s if it takes more than `10` seconds to execute. Find evidence that the job was was terminated my K8s
+
+```sh
+# Review usage and examples
+k create job -h
+
+# Search for "terminate" in the kubernetes.io/dos
+# see: https://kubernetes.io/docs/concepts/workloads/controllers/job/#job-termination-and-cleanup
+# Use `.spec.activeDeadlineSeconds`
+k explain job.spec.activeDeadlineSeconds
+
+# Create manifest
+k create job 
+
+k create job myjob --image=busybox --dry-run=client -oyaml -- /bin/sh -c "echo hello;sleep 30;echo world" > myjob.yaml
+
+vim myjob.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: myjob
+spec:
+  activeDeadlineSeconds: 10 # Add this line
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - echo hello;sleep 30;echo world
+        image: busybox
+        name: myjob
+        resources: {}
+      restartPolicy: Never
+status: {}
+
+# Apply and watch run
+$ k apply -f myjob.yaml; k get pods -owide -w
+job.batch/myjob created
+NAME          READY   STATUS              RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES
+myjob-k4n4n   0/1     ContainerCreating   0          0s    <none>   node01   <none>           <none>
+myjob-k4n4n   0/1     ContainerCreating   0          0s    <none>   node01   <none>           <none>
+myjob-k4n4n   1/1     Running             0          1s    192.168.1.4   node01   <none>           <none>
+myjob-k4n4n   1/1     Terminating         0          10s   192.168.1.4   node01   <none>           <none>
+myjob-k4n4n   1/1     Terminating         0          10s   192.168.1.4   node01   <none>           <none>
+
+# Verify
+$ k get job/myjob -oyaml | yq e '.status' -
+conditions:
+  - lastProbeTime: "2023-10-22T01:47:44Z"
+    lastTransitionTime: "2023-10-22T01:47:44Z"
+    message: Job was active longer than specified deadline
+    reason: DeadlineExceeded
+    status: "True"
+    type: Failed
+failed: 1
+ready: 1
+startTime: "2023-10-22T01:47:34Z"
+uncountedTerminatedPods: {}
+```
+
+### Create a job with the image `busybox` that executes the command `echo hello;sleep 30;echo world`, make it run `5 times`, one after the other. Verify its status and delete it
+
+DEVTODO left off here:
+https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L830
+
+```sh
+# Review usage and examples
+k create job -h
+
+# Explain job spec, found "completions" and this was all that was needed to know what to do
+k explain job.spec      
+
+# Generate manifest
+k create job myjob --image=busybox --dry-run=client -oyaml -- /bin/sh -c "echo hello;sleep 30;echo world" > myjob.yaml
+
+# Edit manifests
+vim myjob.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: myjob
+spec:
+  completions: 5 # add this
+  parallelism: 1 # add this
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - echo hello;sleep 30;echo world
+        image: busybox
+        name: myjob
+        resources: {}
+      restartPolicy: Never
+status: {}
+
+# Apply and watch run
+k apply -f myjob.yaml; k get pods -l job-name=myjob -owide -w
+```
+
+### Create the same job, but make it run 5 parallel times
+
+```sh
+# Review usage and examples
+k create job -h
+
+# Explain job spec, found "completions" and this was all that was needed to know what to do
+k explain job.spec      
+
+# Generate manifest
+k create job myjob --image=busybox --dry-run=client -oyaml -- /bin/sh -c "echo hello;sleep 30;echo world" > myjob.yaml
+
+# Edit manifests
+vim myjob.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: myjob
+spec:
+  completions: 5 # Add this
+  parallelism: 5 # Add this
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - echo hello;sleep 30;echo world
+        image: busybox
+        name: myjob
+        resources: {}
+      restartPolicy: Never
+status: {}
+
+# Apply and watch run
+k apply -f myjob.yaml
+
+watch kubectl get pods
+```
 
 DEVTODO - left off here
+https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L979
+
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
 
 
 
