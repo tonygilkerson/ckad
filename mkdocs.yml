@@ -1,0 +1,13 @@
+site_name: CKAD Prep
+site_author: Tony Gilkerson
+strict: true
+theme:
+  name: material
+  font: false
+extra_css:
+  - stylesheets/extra.css
+nav:
+  - Getting Started: index.md
+  - About the exam: context.md
+  - How to use this guid: how-to-use-this-guid.md
+

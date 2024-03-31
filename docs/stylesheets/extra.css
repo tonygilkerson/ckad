@@ -1,0 +1,42 @@
+.md-header {
+  /* background-color:#23489B; */
+  background-color:#7812c0;
+  color: #FAFAFA;
+
+}
+
+.md-header-nav__button.md-logo img {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.md-typeset h1, h3 {
+  /* color: #23489B; */
+  color: #7812c0;
+
+}
+
+.md-typeset h2, p {
+  /* color: #41444E; */
+  color: #3d3643;
+}
+
+.mermaid {
+  width: 100%;
+}
+
+.md-sidebar {
+  width: 14%;
+}
+
+.md-sidebar__scrollwrap {
+  background-color: #F6F7F7;
+}
+
+.md-content__inner {
+  width: 60em;
+}
+
+.md-grid {
+  max-width: 75rem;
+}
