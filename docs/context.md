@@ -15,6 +15,16 @@ Below is a screenshot of the exam environment. This [article](https://itnext.io/
 
 Reference [see](https://training.linuxfoundation.org/blog/update-on-certification-exam-proctoring-migration/?utm_source=lftraining&utm_medium=twitter&utm_campaign=blog) and [this](https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks)
 
+### CLI Tools
+
+For your convenience, all environments, in other words, the base system and the cluster nodes, have the following additional command-line tools pre-installed and pre-configured:
+
+* `kubectl` with `k` alias and Bash autocompletion
+* `jq` for YAML/JSON processing
+* `tmux` for terminal multiplexing
+* `curl` and `wget` for testing web services
+* `man` and man pages for further documentation
+
 ### Exam issues with current resolutions
 
 #### lag
@@ -81,7 +91,7 @@ A score of 66% or above must be earned to pass.
 During the exam, candidates may use the browser within the VM to access the following documentation:
 
 * [https://kubernetes.io/docs](https://kubernetes.io/docs)
-* [https://kubernetes.io/blog](https://kubernetes.io/blog) 
+* [https://kubernetes.io/blog](https://kubernetes.io/blog)
 * [https://helm.sh/docs ](https://helm.sh/docs)
 
 #### Where can I find practice questions for CKAD
@@ -95,5 +105,3 @@ Login to [My Portal](https://trainingportal.linuxfoundation.org/) and click Star
 The Linux Foundation offers a free [Introduction to Kubernetes course](https://training.linuxfoundation.org/linux-courses/system-administration-training/introduction-to-kubernetes) which provides an introduction to many key concepts for Kubernetes. The [Fundamentals of Kubernetes (LFS258) course](https://training.linuxfoundation.org/linux-courses/system-administration-training/kubernetes-fundamentals) builds on this introductory material and is designed as preparation for the Certified Kubernetes Administrator Exam. 
 
 The topics covered in the [Kubernetes for Developers (LFS259) course](https://training.linuxfoundation.org/training/kubernetes-for-developers/) are directly aligned with the knowledge domains tested by the Certified Kubernetes Application Developer Exam.
-
-
