@@ -79,6 +79,7 @@ A score of 66% or above must be earned to pass.
 #### What resources am I allowed to access during my exam?
 
 During the exam, candidates may use the browser within the VM to access the following documentation:
+
 * [https://kubernetes.io/docs](https://kubernetes.io/docs)
 * [https://kubernetes.io/blog](https://kubernetes.io/blog) 
 * [https://helm.sh/docs ](https://helm.sh/docs)

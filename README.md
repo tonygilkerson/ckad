@@ -29,8 +29,6 @@ open http://127.0.0.1:8000/
 ## Publish
 
 ```sh
-cd OpsDoc
-mkdocs build --clean
-mkdocs gh-deploy
+make publish
 open https://tonygilkerson.github.io/ckad/
 ```
