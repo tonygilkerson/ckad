@@ -15,10 +15,9 @@ help:
 	$(call help_info)
 
 dev:
-	@source ".venv/bin/activate"; mkdocs serve
+	source ".venv/bin/activate"; mkdocs serve
 
 
 pub:
-	mkdocs build --clean
-	mkdocs gh-deploy
+	source ".venv/bin/activate"; mkdocs build --clean; mkdocs gh-deploy
 
