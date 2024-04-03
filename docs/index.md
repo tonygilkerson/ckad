@@ -2,7 +2,9 @@
 
 This guide is intended to prepare you for the [Certified Kubernetes Application Developer (CKAD)](https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/) exam.
 
-Here is a suggested timeline of activities:
+## Learning Path
+
+Here is the official [CKAD learning path](https://training.linuxfoundation.org/wp-content/uploads/2023/07/CKAD_CurriculumPath_Jul23.pdf) but for a quicker less expensive option you can follow the the learning path outlined below:
 
 1. Take the [Introduction to Kubernetes (LFS158x)](https://training.linuxfoundation.org/training/introduction-to-kubernetes/) course
 2. Study for the exam using this guide, see [how to use this guide](./how-to-use-this-guid.md)
