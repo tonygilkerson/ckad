@@ -6,16 +6,19 @@ NOW := $(shell echo "`date +%Y-%m-%d`")
 define help_info
 	@echo "\nUsage:\n"
 	@echo ""
-	@echo ""
-	@echo "  $$ make test                         - Run all KUTTL tests locally, this will create a kwok-cluster"
-	@echo "  $$ make testCI                       - Run all KUTTL tests in CI, this assumes the kwok-cluster is already running as a CI service"
+	@echo "  $$ make dev         - Start mkdocs dev sandbox"
+	@echo "  $$ make publishDocs - Publish doc to Gighub pages"
 	@echo ""
 endef
 
 help:
 	$(call help_info)
 
-publish:
+dev:
+	@source ".venv/bin/activate"; mkdocs serve
+
+
+publishDocs:
 	mkdocs build --clean
 	mkdocs gh-deploy
 

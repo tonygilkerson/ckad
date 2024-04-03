@@ -17,12 +17,7 @@ pip3 install mkdocs-material
 ## Develop
 
 ```sh
-# Active python environment
-source .venv/bin/activate
-
-# Serve the doc
-mkdocs serve
-# Edit content and review changes here:
+make dev
 open http://127.0.0.1:8000/
 ```
 
