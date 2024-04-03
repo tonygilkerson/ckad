@@ -24,6 +24,6 @@ open http://127.0.0.1:8000/
 ## Publish
 
 ```sh
-make publish
+make pub
 open https://tonygilkerson.github.io/ckad/
 ```
