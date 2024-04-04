@@ -27,3 +27,15 @@ open http://127.0.0.1:8000/
 make pub
 open https://tonygilkerson.github.io/ckad/
 ```
+
+## Notes
+
+### Todos
+
+Start this free course:
+
+- [ ] - https://learning.edx.org/course/course-v1:LinuxFoundationX+LFS158x+1T2024/home
+
+Read up on next steps for taking the exam. Document some of the experience:
+
+- [ ] - https://trainingportal.linuxfoundation.org/courses/certified-kubernetes-application-developer-ckad
