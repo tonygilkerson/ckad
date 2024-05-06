@@ -8,7 +8,8 @@ extra_css:
   - stylesheets/extra.css
 nav:
   - Getting Started: index.md
-  - About the exam: context.md
+  - About the exam: about-the-exam.md
   - How to use this guid: how-to-use-this-guid.md
+  - Practice Questions: practice-questions.md
   - References: ref.md
 
