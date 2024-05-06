@@ -25,18 +25,18 @@
   width: 100%;
 }
 
-.md-sidebar {
+/* .md-sidebar {
   width: 14%;
-}
+} */
 
 .md-sidebar__scrollwrap {
   background-color: #F6F7F7;
 }
 
-.md-content__inner {
+/* .md-content__inner {
   width: 60em;
-}
+} */
 
-.md-grid {
+/* .md-grid {
   max-width: 75rem;
-}
+} */
