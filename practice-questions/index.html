@@ -887,18 +887,27 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#q" class="md-nav__link">
+  <a href="#q62" class="md-nav__link">
     <span class="md-ellipsis">
-      Q?
+      Q62
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#q_1" class="md-nav__link">
+  <a href="#q63" class="md-nav__link">
     <span class="md-ellipsis">
-      Q?
+      Q63
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q64" class="md-nav__link">
+    <span class="md-ellipsis">
+      Q64
     </span>
   </a>
   
@@ -924,15 +933,6 @@
         
           <li class="md-nav__item">
   <a href="#question_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      Question
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#question_3" class="md-nav__link">
     <span class="md-ellipsis">
       Question
     </span>
@@ -1592,18 +1592,27 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#q" class="md-nav__link">
+  <a href="#q62" class="md-nav__link">
     <span class="md-ellipsis">
-      Q?
+      Q62
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#q_1" class="md-nav__link">
+  <a href="#q63" class="md-nav__link">
     <span class="md-ellipsis">
-      Q?
+      Q63
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q64" class="md-nav__link">
+    <span class="md-ellipsis">
+      Q64
     </span>
   </a>
   
@@ -1629,15 +1638,6 @@
         
           <li class="md-nav__item">
   <a href="#question_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      Question
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#question_3" class="md-nav__link">
     <span class="md-ellipsis">
       Question
     </span>
@@ -3129,8 +3129,6 @@ uncountedTerminatedPods: {}
 <blockquote>
 <p>Create a job with the image <code>busybox</code> that executes the command <code>echo hello;sleep 30;echo world</code>, make it run <code>5 times</code>, one after the other. Verify its status and delete it</p>
 </blockquote>
-<p>DEVTODO left off here:
-https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L830</p>
 <pre><code class="language-sh"># Review usage and examples
 k create job -h
 
@@ -3213,109 +3211,82 @@ k apply -f myjob.yaml
 
 watch kubectl get pods
 </code></pre>
-<p>DEVTODO - left off here
-https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L979</p>
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-
-<h3 id="q">Q?</h3>
+<h3 id="q62">Q62</h3>
 <blockquote>
 <p>Create a namespace called <code>ggckad-s0</code> in your cluster.</p>
-</blockquote>
 <p>Run the following pods in this namespace.</p>
 <ol>
 <li>A pod called <code>pod-a</code> with a single container running the <code>kubegoldenguide/simple-http-server</code> image</li>
 <li>A pod called <code>pod-b</code> that has one container running the <code>kubegoldenguide/alpine-spin:1.0.0</code> image, and one container running <code>nginx:1.7.9</code></li>
 </ol>
 <p>Write down the output of <code>kubectl get pods</code> for the <code>ggckad-s0</code> namespace.</p>
-<p>Answer</p>
-<p>DEVTODO - Redo this answer</p>
-<p>There answer which I might want to update:</p>
+</blockquote>
 <pre><code class="language-bash"># Create namespace
 k create namespace ggckad-s0
 ns ggckad-s0
 
 # Generate pod manifests
-kubectl run nginx --image=kubegoldenguide/simple-http-server --dry-run=client -o yaml &gt; simple-http-server.yaml
-kubectl run nginx --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -o yaml &gt; alpine-spin.yaml
-kubectl run nginx --image=nginx:1.7.9 --dry-run=client -o yaml &gt; nginx.yaml
+kubectl run pod-a --image=kubegoldenguide/simple-http-server
+kubectl run pod-b --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -o yaml &gt; pod-b.yaml
 
-# Modify the generated files to give the following:
+
+# Modify the pod-b.yaml and add the second container
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-a
+  creationTimestamp: null
   labels:
-    role: myrole
-spec:
-  containers:
-    - name: web
-      image: kubegoldenguide/simple-http-server
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
----
-apiVersion: v1
-kind: Pod
-metadata:
+    run: pod-b
   name: pod-b
-  labels:
-    role: myrole
 spec:
   containers:
-    - name: alpine-spin-container
-      image: kubegoldenguide/alpine-spin:1.0.0
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
-    - name: nginx-container
-      image: nginx:1.7.9
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
+  - image: kubegoldenguide/alpine-spin:1.0.0
+    name: pod-b
+  # manually add the nginx image
+  - image: nginx:1.7.9
+    name: nginx
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
 
 # Apply 
-k apply -f pod-a.yaml --namespace ggckad-s0
-k logs pod-a --namespace ggckad-s0
-k apply -f pod-b.yaml --namespace ggckad-s0
-k logs pod-b alpine-spin-container --namespace ggckad-s0
-k logs pod-b nginx-container --namespace ggckad-s0
+k apply -f pod-b.yaml
+
+# Answer
+k get pods
+
+NAME    READY   STATUS    RESTARTS   AGE
+pod-a   1/1     Running   0          26s
+pod-b   2/2     Running   0          36s
 </code></pre>
-<h3 id="q_1">Q?</h3>
+<h3 id="q63">Q63</h3>
+<blockquote>
 <p>All operations in this question should be performed in the <code>ggckad-s2</code> namespace.</p>
 <p>Create a ConfigMap called <code>app-config</code> that contains the following two entries:</p>
 <ul>
 <li><code>connection_string</code> set to <code>localhost:4096</code></li>
 <li><code>external_url</code> set to <code>google.com</code></li>
 </ul>
-<p>Run a pod called <code>question-two-pod</code> with a single container running the <code>kubegoldenguide/alpine-spin:1.0.0</code> image, and expose these configuration settings as environment variables inside the container.</p>
-<p>All operations in this question should be performed in the <code>ggckad-s2</code> namespace.
-Create a ConfigMap called <code>app-config</code> that contains the following two entries:</p>
-<p>Answer</p>
+<p>Run a pod called <code>question-two-pod</code> with a single container running the <code>kubegoldenguide/alpine-spin:1.0.0</code> image, and expose these &gt;configuration settings as environment variables inside the container.</p>
+</blockquote>
 <pre><code class="language-bash"># Create namespace
 k create ns ggckad-s2
 ns ggckad-s2
 
+# Create configmap
 # Use help to review command Usage example
 k create cm --help
 
 # Create manifest
 k create cm app-config \
   --from-literal=connection_string=localhost:4096 \
-  --from-literal=external_url=google.com \
-  --dry-run=client -oyaml &gt; app-config.yaml
+  --from-literal=external_url=google.com 
 
 # Review manifest and apply
-cat app-config.yaml 
-k apply -f app-config.yaml
+k get cm/app-config -oyaml | yq .
 
+# Create pod
 # Review command Usage example
 k run --help
 
@@ -3335,7 +3306,7 @@ k run question-two-pod \
 #
 # or 
 # Use explain to figure out how to expose the cm as env vars
-k explain pod.spec.containers.env --recursive=true
+k explain pod.spec.containers.env.valueFrom.configMapKeyRef
 
 
 # Edit file add the valueFrom section
@@ -3371,16 +3342,17 @@ spec:
 k apply -f question-two-pod.yaml
 
 # Verify
-k exec -it  pod/question-two-pod /bin/sh
+k exec -it  pod/question-two-pod -- /bin/sh
 
 / # echo $EXTERNAL_URL
 google.com
 / # echo $CONNECTION_STRING
 localhost:4096
-/ #
 </code></pre>
-<h3 id="question">Question</h3>
+<h3 id="q64">Q64</h3>
+<blockquote>
 <p>All operations in this question should be performed in the <code>ggckad-s2</code> namespace. Create a pod that has two containers. Both containers should run the <code>kubegoldenguide/alpine-spin:1.0.0</code> image. The first container should run as <code>user ID 1000</code>, and the second container with <code>user ID 2000</code>. Both containers should use file system <code>group ID 3000</code>.</p>
+</blockquote>
 <p>Answer:</p>
 <pre><code class="language-bash"># Create namespace
 k create ns ggckad-s2
@@ -3389,7 +3361,7 @@ ns ggckad-s2
 #
 # Create base pod manifest
 #
-k run mypod --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -oyaml &gt; mypod
+k run mypod --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -oyaml &gt; mypod.yaml
 
 
 # Research
@@ -3397,7 +3369,7 @@ k run mypod --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -oyaml &g
 # &quot;user&quot; is in the question so I start there
 # Search pod spec for &quot;user&quot; because I did not remember &quot;securityContext&quot;
 #
-k explain pod.spec --recursive=yes | grep -i user
+k explain pod.spec --recursive=true | grep -i user
 
 # Search kubernetes.io/docs for &quot;securityContext&quot; to find an example
 # Also now that I know what it is called explain it to verify
@@ -3444,7 +3416,7 @@ $ k exec -it pod/mypod -c=c2 -- /bin/sh
 / $ id
 uid=2000 gid=3000
 </code></pre>
-<h3 id="question_1">Question</h3>
+<h3 id="question">Question</h3>
 <p>All operations in this question should be performed in the <code>ggckad-s4</code> namespace. This question will require you to create a pod that runs the image <code>kubegoldenguide/question-thirteen</code>. This image is in the main Docker repository at <a href="http://hub.docker.com/"><code>hub.docker.com</code></a>.</p>
 <p>This image is a web server that has a health endpoint served at <code>/health</code>. The web server listens on port <code>8000</code>. (It runs Python’s SimpleHTTPServer.) It returns a 200 status code response when the application is healthy. The application typically takes <code>sixty seconds to start</code>.</p>
 <p>Create a pod called <code>question-13-pod</code> to run this application, making sure to define <code>liveness</code> and <code>readiness</code> probes that use this health endpoint.</p>
@@ -3500,7 +3472,7 @@ $ k get pods
 NAME   READY   STATUS    RESTARTS   AGE
 pod4   1/1     Running   0          107s 
 </code></pre>
-<h3 id="question_2">Question</h3>
+<h3 id="question_1">Question</h3>
 <p>All operations in this question should be performed in the <code>ggckad-s5</code> namespace. Create a file called <code>question-5.yaml</code> that declares a deployment in the <code>ggckad-s5</code> namespace, with <code>six replicas</code> running the <code>nginx:1.7.9</code> image.</p>
 <p>Each pod should have the label <code>app=revproxy</code>. The deployment should have the label <code>client=user</code>. Configure the deployment so that when the deployment is updated, <strong>the existing pods are killed off before new pods are created</strong> to replace them.</p>
 <p>Answer:</p>
@@ -3574,10 +3546,19 @@ k apply -f question-5.yaml
 # You should see six pod running
 k get all
 </code></pre>
-<h3 id="question_3">Question</h3>
+<h3 id="question_2">Question</h3>
 <p>This is question x</p>
 <p>Answer:</p>
 <p>this the answer</p>
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+
+<p>DEVTODO - left off here
+https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L979</p>
 
 
 
