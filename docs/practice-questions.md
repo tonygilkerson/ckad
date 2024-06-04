@@ -1592,9 +1592,6 @@ uncountedTerminatedPods: {}
 
 >Create a job with the image `busybox` that executes the command `echo hello;sleep 30;echo world`, make it run `5 times`, one after the other. Verify its status and delete it
 
-DEVTODO left off here:
-https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L830
-
 ```sh
 # Review usage and examples
 k create job -h
@@ -1681,33 +1678,16 @@ k apply -f myjob.yaml
 watch kubectl get pods
 ```
 
-DEVTODO - left off here
-https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L979
-
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-<!-- ####################################################### -->
-
-
-### Q?
+### Q62
 
 >Create a namespace called `ggckad-s0` in your cluster.
-
-Run the following pods in this namespace.
-
-1. A pod called `pod-a` with a single container running the `kubegoldenguide/simple-http-server` image
-2. A pod called `pod-b` that has one container running the `kubegoldenguide/alpine-spin:1.0.0` image, and one container running `nginx:1.7.9`
-
-Write down the output of `kubectl get pods` for the `ggckad-s0` namespace.
-
-Answer
-
-DEVTODO - Redo this answer
-
-There answer which I might want to update:
+>
+>Run the following pods in this namespace.
+>
+>1. A pod called `pod-a` with a single container running the `kubegoldenguide/simple-http-server` image
+>2. A pod called `pod-b` that has one container running the `kubegoldenguide/alpine-spin:1.0.0` image, and one container running `nginx:1.7.9`
+>
+>Write down the output of `kubectl get pods` for the `ggckad-s0` namespace.
 
 ```bash
 # Create namespace
@@ -1715,89 +1695,70 @@ k create namespace ggckad-s0
 ns ggckad-s0
 
 # Generate pod manifests
-kubectl run nginx --image=kubegoldenguide/simple-http-server --dry-run=client -o yaml > simple-http-server.yaml
-kubectl run nginx --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -o yaml > alpine-spin.yaml
-kubectl run nginx --image=nginx:1.7.9 --dry-run=client -o yaml > nginx.yaml
+kubectl run pod-a --image=kubegoldenguide/simple-http-server
+kubectl run pod-b --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -o yaml > pod-b.yaml
 
-# Modify the generated files to give the following:
+
+# Modify the pod-b.yaml and add the second container
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-a
+  creationTimestamp: null
   labels:
-    role: myrole
-spec:
-  containers:
-    - name: web
-      image: kubegoldenguide/simple-http-server
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
----
-apiVersion: v1
-kind: Pod
-metadata:
+    run: pod-b
   name: pod-b
-  labels:
-    role: myrole
 spec:
   containers:
-    - name: alpine-spin-container
-      image: kubegoldenguide/alpine-spin:1.0.0
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
-    - name: nginx-container
-      image: nginx:1.7.9
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
+  - image: kubegoldenguide/alpine-spin:1.0.0
+    name: pod-b
+  # manually add the nginx image
+  - image: nginx:1.7.9
+    name: nginx
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
 
 # Apply 
-k apply -f pod-a.yaml --namespace ggckad-s0
-k logs pod-a --namespace ggckad-s0
-k apply -f pod-b.yaml --namespace ggckad-s0
-k logs pod-b alpine-spin-container --namespace ggckad-s0
-k logs pod-b nginx-container --namespace ggckad-s0
+k apply -f pod-b.yaml
+
+# Answer
+k get pods
+
+NAME    READY   STATUS    RESTARTS   AGE
+pod-a   1/1     Running   0          26s
+pod-b   2/2     Running   0          36s
 ```
 
-### Q?
+### Q63
 
-All operations in this question should be performed in the `ggckad-s2` namespace.
-
-Create a ConfigMap called `app-config` that contains the following two entries:
-
-- `connection_string` set to `localhost:4096`
-- `external_url` set to `google.com`
-
-Run a pod called `question-two-pod` with a single container running the `kubegoldenguide/alpine-spin:1.0.0` image, and expose these configuration settings as environment variables inside the container.
-
-All operations in this question should be performed in the `ggckad-s2` namespace.
-Create a ConfigMap called `app-config` that contains the following two entries:
-
-Answer
+>All operations in this question should be performed in the `ggckad-s2` namespace.
+>
+>Create a ConfigMap called `app-config` that contains the following two entries:
+>
+>- `connection_string` set to `localhost:4096`
+>- `external_url` set to `google.com`
+>
+>Run a pod called `question-two-pod` with a single container running the `kubegoldenguide/alpine-spin:1.0.0` image, and expose these >configuration settings as environment variables inside the container.
 
 ```bash
 # Create namespace
 k create ns ggckad-s2
 ns ggckad-s2
 
+# Create configmap
 # Use help to review command Usage example
 k create cm --help
 
 # Create manifest
 k create cm app-config \
   --from-literal=connection_string=localhost:4096 \
-  --from-literal=external_url=google.com \
-  --dry-run=client -oyaml > app-config.yaml
+  --from-literal=external_url=google.com 
 
 # Review manifest and apply
-cat app-config.yaml 
-k apply -f app-config.yaml
+k get cm/app-config -oyaml | yq .
 
+# Create pod
 # Review command Usage example
 k run --help
 
@@ -1817,7 +1778,7 @@ k run question-two-pod \
 #
 # or 
 # Use explain to figure out how to expose the cm as env vars
-k explain pod.spec.containers.env --recursive=true
+k explain pod.spec.containers.env.valueFrom.configMapKeyRef
 
 
 # Edit file add the valueFrom section
@@ -1853,18 +1814,17 @@ spec:
 k apply -f question-two-pod.yaml
 
 # Verify
-k exec -it  pod/question-two-pod /bin/sh
+k exec -it  pod/question-two-pod -- /bin/sh
 
 / # echo $EXTERNAL_URL
 google.com
 / # echo $CONNECTION_STRING
 localhost:4096
-/ #
 ```
 
-### Question
+### Q64
 
-All operations in this question should be performed in the `ggckad-s2` namespace. Create a pod that has two containers. Both containers should run the `kubegoldenguide/alpine-spin:1.0.0` image. The first container should run as `user ID 1000`, and the second container with `user ID 2000`. Both containers should use file system `group ID 3000`.
+>All operations in this question should be performed in the `ggckad-s2` namespace. Create a pod that has two containers. Both containers should run the `kubegoldenguide/alpine-spin:1.0.0` image. The first container should run as `user ID 1000`, and the second container with `user ID 2000`. Both containers should use file system `group ID 3000`.
 
 Answer:
 
@@ -1876,7 +1836,7 @@ ns ggckad-s2
 #
 # Create base pod manifest
 #
-k run mypod --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -oyaml > mypod
+k run mypod --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -oyaml > mypod.yaml
 
 
 # Research
@@ -1884,7 +1844,7 @@ k run mypod --image=kubegoldenguide/alpine-spin:1.0.0 --dry-run=client -oyaml > 
 # "user" is in the question so I start there
 # Search pod spec for "user" because I did not remember "securityContext"
 #
-k explain pod.spec --recursive=yes | grep -i user
+k explain pod.spec --recursive=true | grep -i user
 
 # Search kubernetes.io/docs for "securityContext" to find an example
 # Also now that I know what it is called explain it to verify
@@ -2084,3 +2044,12 @@ Answer:
 this the answer
 
 
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+<!-- ####################################################### -->
+
+DEVTODO - left off here
+https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L979
