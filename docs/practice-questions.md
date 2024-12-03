@@ -1,5 +1,22 @@
 # Practice Questions
 
+You can use [Killerconda Playground](https://killercoda.com/playgrounds/scenario/kubernetes)
+
+## DEVTODO
+
+* review the LSF158 course and make sure I have coverage
+  * how to configure a pod spec with two containers that share a volume
+  * how to specify a cm as env vars
+  * how to specify a specific cm key as an env var
+  * same for secrets
+  * how to mount a cm as a volume
+  * how to mount a secret as a volume
+  * how to use ingress fanout to implement a blue/green deployment
+
+* The Canary strategy runs two application releases simultaneously managed by two independent Deployment controllers, both exposed by the same Service. The users can manage the amount of traffic each Deployment is exposed to by separately scaling up or down the two Deployment controllers, thus increasing or decreasing the number of their replicas receiving traffic.
+* The Blue/Green strategy runs the same application release or two releases of the application on two isolated environments, but only one of the two environments is actively receiving traffic, while the second environment is idle, or may undergo rigorous testing prior to shifting traffic to it. This strategy would also require two independent Deployment controllers, each exposed by their dedicated Services, however, a traffic shifting mechanism is also required. Typically, the traffic shifting can be implemented with the use of an Ingress or another Service.
+
+
 ## Setup
 
 ### alias
@@ -1892,15 +1909,13 @@ $ k exec -it pod/mypod -c=c2 -- /bin/sh
 uid=2000 gid=3000
 ```
 
-### Question
+### Q65
 
-All operations in this question should be performed in the `ggckad-s4` namespace. This question will require you to create a pod that runs the image `kubegoldenguide/question-thirteen`. This image is in the main Docker repository at [`hub.docker.com`](http://hub.docker.com/).
-
-This image is a web server that has a health endpoint served at `/health`. The web server listens on port `8000`. (It runs Python’s SimpleHTTPServer.) It returns a 200 status code response when the application is healthy. The application typically takes `sixty seconds to start`.
-
-Create a pod called `question-13-pod` to run this application, making sure to define `liveness` and `readiness` probes that use this health endpoint.
-
-Answer:
+>All operations in this question should be performed in the `ggckad-s4` namespace. This question will require you to create a pod that runs the image `kubegoldenguide/question-thirteen`. This image is in the main Docker repository at [`hub.docker.com`](http://hub.docker.com/).
+>
+>This image is a web server that has a health endpoint served at `/health`. The web server listens on port `8000`. (It runs Python’s SimpleHTTPServer.) It returns a 200 status code response when the application is healthy. The application typically takes `sixty seconds to start`.
+>
+>Create a pod called `mypod` to run this application, making sure to define `liveness` and `readiness` probes that use this health endpoint.
 
 ```bash
 # Create namespace
@@ -1909,7 +1924,7 @@ ns ggckad-g4
 
 # Generate pod manifests
 k run --help
-k run pod4 --image="kubegoldenguide/question-thirteen" --port=8000 --dry-run=client -oyaml > pod4.yaml
+k run pod mypod --image="kubegoldenguide/question-thirteen" --port=8000 --dry-run=client -oyaml > mypod.yaml
 
 # Research
 #
