@@ -1,5 +1,10 @@
 # Practice Questions
 
+In addition to these practice questions you should
+
+* Read thorough the [Kubernetes tutorials](https://kubernetes.io/docs/tutorials/)
+* Do the practice questions that comes with the exam
+
 You can use [Killerconda Playground](https://killercoda.com/playgrounds/scenario/kubernetes)
 
 ## DEVTODO
