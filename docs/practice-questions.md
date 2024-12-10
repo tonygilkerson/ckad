@@ -21,7 +21,6 @@ You can use [Killerconda Playground](https://killercoda.com/playgrounds/scenario
 * The Canary strategy runs two application releases simultaneously managed by two independent Deployment controllers, both exposed by the same Service. The users can manage the amount of traffic each Deployment is exposed to by separately scaling up or down the two Deployment controllers, thus increasing or decreasing the number of their replicas receiving traffic.
 * The Blue/Green strategy runs the same application release or two releases of the application on two isolated environments, but only one of the two environments is actively receiving traffic, while the second environment is idle, or may undergo rigorous testing prior to shifting traffic to it. This strategy would also require two independent Deployment controllers, each exposed by their dedicated Services, however, a traffic shifting mechanism is also required. Typically, the traffic shifting can be implemented with the use of an Ingress or another Service.
 
-
 ## Setup
 
 ### alias
@@ -2073,3 +2072,129 @@ this the answer
 
 DEVTODO - left off here
 https://github.com/dgkanatsios/CKAD-exercises/blob/d5a1a2bee71658784f4d5e15130dc90daa023826/c.pod_design.md?plain=1#L979
+
+### Q1000
+
+Create a canary deployment.
+
+```sh
+k create deploy myapp --image=caddy --dry-run=client -oyaml > myapp.yaml
+
+# edit myapp.yaml to look like the following
+# use 'docker inspect caddy' if you forget the caddy run syntax
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: myapp
+  name: myapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+      color: black
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: myapp
+        color: black
+    spec:
+      containers:
+      - image: caddy
+        name: caddy
+        resources: {}
+        command: [ "sh", "-c" ]
+        args:
+        - |
+          echo "black" > /usr/share/caddy/index.html
+          caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
+# copy myapp and edit the blue.yaml and green.yaml
+# change 'color: black' to blue and green respectively  
+cp myapp.yaml blue.yaml
+cp myapp.yaml green.yaml
+
+# Edit blue.yaml
+# change the name to blue and replace black with blue
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: myapp
+  name: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+      color: blue
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: myapp
+        color: blue
+    spec:
+      containers:
+      - image: caddy
+        name: caddy
+        resources: {}
+        command: [ "sh", "-c" ]
+        args:
+        - |
+          echo "blue" > /usr/share/caddy/index.html
+          caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+
+# Edit green.yaml
+# change the name to green and replace black with green
+
+# apply 
+k apply -f blue.yaml -f green.yaml 
+
+# expose
+k expose deploy/blue --port=80 --type=NodePort --dry-run=client -oyaml > svc.yaml
+
+# Edit svc.yaml to look like this
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: myapp
+  name: myapp
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: myapp
+  type: NodePort
+status:
+  loadBalancer: {}
+
+# apply
+k apply -f svc.yaml 
+
+# discover the nodeport and host ip
+$ k get svc
+NAME    TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+myapp   NodePort   10.98.119.14   <none>        80:31047/TCP   42s
+
+controlplane $ k cluster-info
+Kubernetes control plane is running at https://172.30.1.2:6443
+CoreDNS is running at https://172.30.1.2:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+# curl myapp
+curl http://172.30.1.2:31047
+
+# scale the green app 
+k scale deploy/green --replicas=3
+
+```
